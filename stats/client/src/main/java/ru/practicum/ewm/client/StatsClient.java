@@ -11,6 +11,10 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +51,14 @@ public class StatsClient {
         return responseBuilder.build();
     }
 
-    public List<ViewStatsDto> getStats(String start, String end, String[] uris, Boolean unique) {
+    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
+        String encodeStart = URLEncoder.encode(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                StandardCharsets.UTF_8);
+        String encodeEnd = URLEncoder.encode(end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                StandardCharsets.UTF_8);
         Map<String, Object> parameters = Map.of(
-            "start", start,
-            "end", end,
+            "start", encodeStart,
+            "end", encodeEnd,
             "uris", uris,
             "unique", unique
         );
