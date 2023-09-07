@@ -21,8 +21,12 @@ public class StatsController {
     @GetMapping("/stats")
     public List<ViewStatsDto> getStats(@RequestParam(value = "start") String start,
             @RequestParam(value = "end") String end,
-            @RequestParam(value = "uris") String[] uris,
-            @RequestParam(value = "unique") Boolean unique) {
+            @RequestParam(value = "uris", required = false) List<String> uris,
+            @RequestParam(value = "unique", defaultValue = "false") Boolean unique) {
+        System.out.println(start);
+        System.out.println(end);
+        System.out.println(uris);
+        System.out.println(unique);
         return service.getStats(start, end, uris, unique);
     }
 }
