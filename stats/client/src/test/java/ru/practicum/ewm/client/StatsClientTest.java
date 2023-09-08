@@ -36,11 +36,11 @@ class StatsClientTest {
                 .timestamp("2022-09-06 11:00:23").build();
 
         Mockito.when(restTemplate.exchange(anyString(), any(), any(), eq(Object.class)))
-                .thenReturn(new ResponseEntity<>(HttpStatus.ACCEPTED));
+                .thenReturn(new ResponseEntity<>(HttpStatus.CREATED));
 
         ResponseEntity<Object> response = client.saveHit(endpointHitDto);
         verify(restTemplate, times(1)).exchange(anyString(), any(), any(), eq(Object.class));
-        assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
     }
 
     @Test
@@ -69,8 +69,8 @@ class StatsClientTest {
                         eq(new ParameterizedTypeReference<List<ViewStatsDto>>() {}), anyMap()))
                 .thenReturn(new ResponseEntity<>(List.of(viewStatsDto), HttpStatus.OK));
 
-        List<ViewStatsDto> viewStatsDtos = client.getStats(LocalDateTime.now().minusDays(1),
-                LocalDateTime.now().plusDays(1), null, null);
+        List<ViewStatsDto> viewStatsDtos = client.getStats(LocalDateTime.now().minusDays(2),
+                LocalDateTime.now().minusDays(1), null, null);
         verify(restTemplate, times(1)).exchange(anyString(), any(), any(),
                 eq(new ParameterizedTypeReference<List<ViewStatsDto>>() {}), anyMap());
         assertEquals(viewStatsDto, viewStatsDtos.get(0));
