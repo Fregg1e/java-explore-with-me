@@ -14,8 +14,7 @@ import ru.practicum.ewm.model.EndpointHit;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -62,8 +61,10 @@ class StatsServiceImplTest {
                 .timestamp("2022-09-06 11:00:23")
                 .build();
         entityManager.persist(EndpointHitMapper.toEndpointHit(endpointHitDto));
-        String start = URLEncoder.encode("2020-09-06 11:00:23", StandardCharsets.UTF_8);
-        String end = URLEncoder.encode("2023-09-06 11:00:23", StandardCharsets.UTF_8);
+        LocalDateTime start = LocalDateTime.parse("2020-09-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime end = LocalDateTime.parse("2023-09-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         List<ViewStatsDto> viewStatsDtos = service.getStats(start, end, null, false);
 
@@ -88,8 +89,10 @@ class StatsServiceImplTest {
                 .timestamp("2022-09-07 11:00:23")
                 .build();
         entityManager.persist(EndpointHitMapper.toEndpointHit(endpointHitDto2));
-        String start = URLEncoder.encode("2020-09-06 11:00:23", StandardCharsets.UTF_8);
-        String end = URLEncoder.encode("2023-09-06 11:00:23", StandardCharsets.UTF_8);
+        LocalDateTime start = LocalDateTime.parse("2020-09-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime end = LocalDateTime.parse("2023-09-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         List<ViewStatsDto> viewStatsDtos = service.getStats(start, end, List.of("/events/3"), true);
 

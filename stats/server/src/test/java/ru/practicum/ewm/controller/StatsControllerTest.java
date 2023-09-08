@@ -11,8 +11,9 @@ import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 import ru.practicum.ewm.service.StatsService;
 
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.hamcrest.Matchers.hasSize;
@@ -55,14 +56,16 @@ class StatsControllerTest {
 
     @Test
     void getStatsTest() throws Exception {
-        String start = URLEncoder.encode("2022-07-06 11:00:23", StandardCharsets.UTF_8);
-        String end = URLEncoder.encode("2023-07-06 11:00:23", StandardCharsets.UTF_8);
+        LocalDateTime start = LocalDateTime.parse("2022-07-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime end = LocalDateTime.parse("2023-07-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         when(service.getStats(start, end, null, false)).thenReturn(List.of(viewStatsDto));
 
         mockMvc.perform(get("/stats")
-                .param("start", start)
-                .param("end", end)
+                .param("start", "2022-07-06 11:00:23")
+                .param("end", "2023-07-06 11:00:23")
                 .characterEncoding(StandardCharsets.UTF_8)
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -82,14 +85,16 @@ class StatsControllerTest {
 
     @Test
     void getStatsTest_whenServiceThrowRuntimeException_thenReturnInternalServerError() throws Exception {
-        String start = URLEncoder.encode("2022-07-06 11:00:23", StandardCharsets.UTF_8);
-        String end = URLEncoder.encode("2023-07-06 11:00:23", StandardCharsets.UTF_8);
+        LocalDateTime start = LocalDateTime.parse("2022-07-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime end = LocalDateTime.parse("2023-07-06 11:00:23",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
 
         when(service.getStats(start, end, null, false)).thenThrow(new RuntimeException());
 
         mockMvc.perform(get("/stats")
-                        .param("start", start)
-                        .param("end", end)
+                        .param("start", "2022-07-06 11:00:23")
+                        .param("end", "2023-07-06 11:00:23")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isInternalServerError());

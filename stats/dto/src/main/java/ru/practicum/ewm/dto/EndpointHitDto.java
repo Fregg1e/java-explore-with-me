@@ -6,9 +6,9 @@ import lombok.Data;
 @Data
 @Builder
 public class EndpointHitDto {
-    Long id;
-    String app;
-    String uri;
-    String ip;
-    String timestamp;
+    private Long id;
+    private String app;
+    private String uri;
+    private String ip;
+    private String timestamp;
 }
