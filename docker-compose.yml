@@ -32,6 +32,8 @@ services:
       - stats-server
     environment:
       - EWM_DB_URL=jdbc:postgresql://ewm-db:5642/ewm
+      - EWM_DB_USER=root
+      - EWM_DB_PASSWORD=root
       - STATS_SERVER_URL=http://stats-server:9090
 
   ewm-db:
