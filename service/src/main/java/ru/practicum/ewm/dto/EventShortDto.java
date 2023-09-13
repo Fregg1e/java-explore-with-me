@@ -9,7 +9,7 @@ public class EventShortDto {
     private Integer confirmedRequests;
     private String eventDate;
     private Long id;
-    private Object initiator;
+    private UserShortDto initiator;
     private Boolean paid;
     private String title;
     private Integer views;

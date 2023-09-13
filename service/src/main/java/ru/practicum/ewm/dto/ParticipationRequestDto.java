@@ -1,7 +1,7 @@
 package ru.practicum.ewm.dto;
 
 import lombok.Data;
-import ru.practicum.ewm.model.RequestStatus;
+import ru.practicum.ewm.model.EventRequestStatus;
 
 @Data
 public class ParticipationRequestDto {
@@ -9,5 +9,5 @@ public class ParticipationRequestDto {
     private Long event;
     private Long id;
     private Long requester;
-    private RequestStatus status;
+    private EventRequestStatus status;
 }

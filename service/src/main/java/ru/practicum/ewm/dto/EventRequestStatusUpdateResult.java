@@ -6,6 +6,6 @@ import java.util.List;
 
 @Data
 public class EventRequestStatusUpdateResult {
-    private List<Object> confirmedRequests;
-    private List<Object> rejectedRequests;
+    private List<ParticipationRequestDto> confirmedRequests;
+    private List<ParticipationRequestDto> rejectedRequests;
 }
