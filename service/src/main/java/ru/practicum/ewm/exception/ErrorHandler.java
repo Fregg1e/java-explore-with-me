@@ -64,16 +64,16 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleThrowable(final Throwable e) {
-        String reason = e.getCause() == null ? "Произошла ошибка." : e.getCause().toString();
-        return new ApiError(
-                Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
-                "Произошла непредвиденная ошибка.",
-                reason,
-                HttpStatus.INTERNAL_SERVER_ERROR,
-                LocalDateTime.now()
-        );
-    }
+//    @ExceptionHandler
+//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+//    public ApiError handleThrowable(final Throwable e) {
+//        String reason = e.getCause() == null ? "Произошла ошибка." : e.getCause().toString();
+//        return new ApiError(
+//                Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
+//                "Произошла непредвиденная ошибка.",
+//                reason,
+//                HttpStatus.INTERNAL_SERVER_ERROR,
+//                LocalDateTime.now()
+//        );
+//    }
 }

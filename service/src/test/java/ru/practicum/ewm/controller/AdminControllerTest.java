@@ -195,4 +195,38 @@ class AdminControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void deleteCategoryTest_whenCategoryIsExist_thenStatusIsNoContent() throws Exception {
+        mockMvc.perform(delete("/admin/categories/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void deleteCategoryTest_whenCategoryIsNotExist_thenStatusIsNotFound() throws Exception {
+        doThrow(new NotFoundException("Категория не найдена.", "Категории с ID = 1 не существует."))
+                .when(categoryAdminService).deleteCategory(1L);
+
+        mockMvc.perform(delete("/admin/categories/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message", is("Категория не найдена.")))
+                .andExpect(jsonPath("$.reason", is("Категории с ID = 1 не существует.")));
+    }
+
+    @Test
+    void deleteCategoryTest_whenCategoryIsUsed_thenStatusIsConflict() throws Exception {
+        doThrow(new AlreadyExistException("Категория не пуста.", "В категории с ID = 1 существует event."))
+                .when(categoryAdminService).deleteCategory(1L);
+
+        mockMvc.perform(delete("/admin/categories/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.message", is("Категория не пуста.")))
+                .andExpect(jsonPath("$.reason", is("В категории с ID = 1 существует event.")));
+    }
 }

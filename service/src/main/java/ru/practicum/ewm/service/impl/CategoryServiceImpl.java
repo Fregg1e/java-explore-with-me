@@ -12,6 +12,7 @@ import ru.practicum.ewm.exception.model.NotFoundException;
 import ru.practicum.ewm.mapper.CategoryMapper;
 import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.repository.CategoryRepository;
+import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.service.CategoryAdminService;
 
 @Service
@@ -20,6 +21,7 @@ import ru.practicum.ewm.service.CategoryAdminService;
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryAdminService {
     private final CategoryRepository categoryRepository;
+    private final EventRepository eventRepository;
 
     @Override
     public CategoryDto createCategory(NewCategoryDto newCategoryDto) {
@@ -39,8 +41,12 @@ public class CategoryServiceImpl implements CategoryAdminService {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена.",
                         String.format("Категория с ID = %d не существует.", catId)));
+        Long eventCount = eventRepository.getCountEventsByCategoryId(category.getId());
+        if (eventCount != 0) {
+            throw new AlreadyExistException("Категория не пуста.",
+                String.format("Категория с ID = %d не пуста.", catId));
+        }
         categoryRepository.deleteById(category.getId());
-        //TODO: Добавить обработку существуют события, связанные с категорией
         log.debug("Категория с id={} удалена.", category.getId());
     }
 }
