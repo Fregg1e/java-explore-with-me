@@ -43,12 +43,13 @@ public class UserServiceImpl implements UserAdminService {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
                 String.format("Пользователя с ID = %d не существует.", userId)));
         userRepository.deleteById(user.getId());
-        log.debug("Пользователь с id={} удален.", userId);
+        log.debug("Пользователь с id={} удален.", user.getId());
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<UserDto> getUsers(List<Long> ids, Integer from, Integer size) {
+        log.debug("Получение пользователей по параметрам ids={}, from={}, size={}.", ids, from, size);
         return userRepository.getUsers(ids, new OffsetPageRequest(from, size)).stream()
                 .map(UserMapper::fromUserToUserDto).collect(Collectors.toList());
     }

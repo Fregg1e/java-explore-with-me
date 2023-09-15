@@ -7,10 +7,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.ewm.dto.CategoryDto;
+import ru.practicum.ewm.dto.NewCategoryDto;
 import ru.practicum.ewm.dto.NewUserRequest;
 import ru.practicum.ewm.dto.UserDto;
 import ru.practicum.ewm.exception.model.AlreadyExistException;
 import ru.practicum.ewm.exception.model.NotFoundException;
+import ru.practicum.ewm.service.CategoryAdminService;
 import ru.practicum.ewm.service.UserAdminService;
 
 import java.nio.charset.StandardCharsets;
@@ -34,6 +37,8 @@ class AdminControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private UserAdminService userAdminService;
+    @MockBean
+    private CategoryAdminService categoryAdminService;
 
     @Test
     void createUserTest_whenUserCorrect_thenReturnNewUser() throws Exception {
@@ -146,6 +151,47 @@ class AdminControllerTest {
                         .param("from", "0")
                         .param("size", "0")
                         .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createCategoryTest_whenCategoryNameIsCorrect_thenStatusIsCreated() throws Exception {
+        NewCategoryDto newCategoryDto = NewCategoryDto.builder().name("test").build();
+        CategoryDto categoryDto = CategoryDto.builder().id(1L).name("test").build();
+        when(categoryAdminService.createCategory(any())).thenReturn(categoryDto);
+
+        mockMvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is(categoryDto.getName())));
+    }
+
+    @Test
+    void createCategoryTest_whenCategoryNameIsExists_thenStatusIsConflict() throws Exception {
+        NewCategoryDto newCategoryDto = NewCategoryDto.builder().name("test").build();
+        when(categoryAdminService.createCategory(any())).thenThrow(AlreadyExistException.class);
+
+        mockMvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void createCategoryTest_whenCategoryNameIsBlank_thenStatusIsBadRequest() throws Exception {
+        NewCategoryDto newCategoryDto = NewCategoryDto.builder().name("").build();
+
+        mockMvc.perform(post("/admin/categories")
+                        .content(mapper.writeValueAsString(newCategoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }

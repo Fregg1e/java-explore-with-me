@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.EventState;
+import ru.practicum.ewm.service.CategoryAdminService;
 import ru.practicum.ewm.service.UserAdminService;
 
 import javax.validation.Valid;
@@ -21,13 +22,16 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AdminController {
     private final UserAdminService userAdminService;
+    private final CategoryAdminService categoryAdminService;
 
     @PostMapping("/categories")
-    public CategoryDto createCategory(@RequestBody NewCategoryDto newCategoryDto) {
-        return null;
+    @ResponseStatus(HttpStatus.CREATED)
+    public CategoryDto createCategory(@RequestBody @Valid NewCategoryDto newCategoryDto) {
+        return categoryAdminService.createCategory(newCategoryDto);
     }
 
     @DeleteMapping("/categories/{catId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCategory(@PathVariable("catId") Long catId) {
 
     }
