@@ -37,8 +37,9 @@ public class AdminController {
     }
 
     @PatchMapping("/categories/{catId}")
-    public CategoryDto updateCategory(@PathVariable("catId") Long catId, @RequestBody CategoryDto categoryDto) {
-        return null;
+    @ResponseStatus(HttpStatus.OK)
+    public CategoryDto updateCategory(@PathVariable("catId") Long catId, @RequestBody @Valid CategoryDto categoryDto) {
+        return categoryAdminService.updateCategory(catId, categoryDto);
     }
 
     @GetMapping("/events")

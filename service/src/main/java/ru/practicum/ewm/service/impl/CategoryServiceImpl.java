@@ -49,4 +49,20 @@ public class CategoryServiceImpl implements CategoryAdminService {
         categoryRepository.deleteById(category.getId());
         log.debug("Категория с id={} удалена.", category.getId());
     }
+
+    @Override
+    public CategoryDto updateCategory(Long catId, CategoryDto categoryDto) {
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена.",
+                        String.format("Категория с ID = %d не существует.", catId)));
+        category.setName(categoryDto.getName());
+        try {
+            category = categoryRepository.save(category);
+        } catch (DataIntegrityViolationException e) {
+            throw new AlreadyExistException("Name должен быть уникальным.",
+                    "Категория с таким name уже существует!");
+        }
+        log.debug("Категория обновлена: {}", category);
+        return CategoryMapper.fromCategoryToCategoryDto(category);
+    }
 }

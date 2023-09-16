@@ -93,4 +93,23 @@ class CategoryServiceImplIntegrationTest {
 
         assertThrows(AlreadyExistException.class, () -> categoryService.deleteCategory(category.getId()));
     }
+
+    @Test
+    void updateCategoryTest_whenCategoryIsExists_thenUpdateCategory() {
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+        CategoryDto updateCategoryDto = CategoryDto.builder().name("updateTest").build();
+
+        CategoryDto categoryDto = categoryService.updateCategory(category.getId(), updateCategoryDto);
+
+        assertEquals(category.getId(), categoryDto.getId());
+        assertEquals(updateCategoryDto.getName(), categoryDto.getName());
+    }
+
+    @Test
+    void updateCategoryTest_whenCategoryIsNotExists_thenNotFoundException() {
+        CategoryDto updateCategoryDto = CategoryDto.builder().name("updateTest").build();
+
+        assertThrows(NotFoundException.class, () -> categoryService.updateCategory(999L, updateCategoryDto));
+    }
 }

@@ -23,9 +23,7 @@ import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -228,5 +226,46 @@ class AdminControllerTest {
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message", is("Категория не пуста.")))
                 .andExpect(jsonPath("$.reason", is("В категории с ID = 1 существует event.")));
+    }
+
+    @Test
+    void updateCategoryTest_whenCategoryIsExists_thenStatusIsOK() throws Exception {
+        CategoryDto categoryDto = CategoryDto.builder().id(1L).name("test").build();
+        when(categoryAdminService.updateCategory(any(), any())).thenReturn(categoryDto);
+
+        mockMvc.perform(patch("/admin/categories/1")
+                        .content(mapper.writeValueAsString(categoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", is(1)))
+                .andExpect(jsonPath("$.name", is(categoryDto.getName())));
+    }
+
+    @Test
+    void updateCategoryTest_whenCategoryIsNotExists_thenStatusIsNotFound() throws Exception {
+        CategoryDto categoryDto = CategoryDto.builder().id(1L).name("test").build();
+        when(categoryAdminService.updateCategory(any(), any())).thenThrow(NotFoundException.class);
+
+        mockMvc.perform(patch("/admin/categories/1")
+                        .content(mapper.writeValueAsString(categoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateCategoryTest_whenCategoryNameIsAlreadyExists_thenStatusIsConflict() throws Exception {
+        CategoryDto categoryDto = CategoryDto.builder().id(1L).name("test").build();
+        when(categoryAdminService.updateCategory(any(), any())).thenThrow(AlreadyExistException.class);
+
+        mockMvc.perform(patch("/admin/categories/1")
+                        .content(mapper.writeValueAsString(categoryDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isConflict());
     }
 }

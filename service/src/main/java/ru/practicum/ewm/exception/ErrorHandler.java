@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import ru.practicum.ewm.exception.model.AlreadyExistException;
 import ru.practicum.ewm.exception.model.ApiError;
+import ru.practicum.ewm.exception.model.EventDateException;
 import ru.practicum.ewm.exception.model.NotFoundException;
 
 import javax.validation.ConstraintViolationException;
@@ -53,6 +54,18 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleEventDateException(final EventDateException e) {
+        return new ApiError(
+                null,
+                e.getMessage(),
+                e.getReason(),
+                HttpStatus.CONFLICT,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleNotFoundException(final NotFoundException e) {
         return new ApiError(
@@ -64,16 +77,16 @@ public class ErrorHandler {
         );
     }
 
-//    @ExceptionHandler
-//    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-//    public ApiError handleThrowable(final Throwable e) {
-//        String reason = e.getCause() == null ? "Произошла ошибка." : e.getCause().toString();
-//        return new ApiError(
-//                Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
-//                "Произошла непредвиденная ошибка.",
-//                reason,
-//                HttpStatus.INTERNAL_SERVER_ERROR,
-//                LocalDateTime.now()
-//        );
-//    }
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ApiError handleThrowable(final Throwable e) {
+        String reason = e.getCause() == null ? "Произошла ошибка." : e.getCause().toString();
+        return new ApiError(
+                Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
+                "Произошла непредвиденная ошибка.",
+                reason,
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                LocalDateTime.now()
+        );
+    }
 }

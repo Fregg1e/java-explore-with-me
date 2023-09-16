@@ -1,15 +1,20 @@
 package ru.practicum.ewm.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.service.EventPrivateService;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor
 public class PrivateController {
+    private final EventPrivateService eventPrivateService;
+
     @GetMapping("/{userId}/events")
     public List<EventShortDto> getEventsByUserId(@PathVariable("userId") Long userId,
             @RequestParam(value = "from", defaultValue = "0")  Integer from,
@@ -18,8 +23,9 @@ public class PrivateController {
     }
 
     @PostMapping("/{userId}/events")
-    public EventFullDto createEvent(@PathVariable("userId") Long userId, @RequestBody NewEventDto newEventDto) {
-        return null;
+    @ResponseStatus(HttpStatus.CREATED)
+    public EventFullDto createEvent(@PathVariable("userId") Long userId, @RequestBody @Valid NewEventDto newEventDto) {
+        return eventPrivateService.createEvent(userId, newEventDto);
     }
 
     @GetMapping("/{userId}/events/{eventId}")
