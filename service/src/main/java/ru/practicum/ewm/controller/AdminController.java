@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.EventState;
 import ru.practicum.ewm.service.CategoryAdminService;
+import ru.practicum.ewm.service.EventAdminService;
 import ru.practicum.ewm.service.UserAdminService;
 
 import javax.validation.Valid;
@@ -23,6 +24,7 @@ import java.util.List;
 public class AdminController {
     private final UserAdminService userAdminService;
     private final CategoryAdminService categoryAdminService;
+    private final EventAdminService eventAdminService;
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
@@ -56,9 +58,10 @@ public class AdminController {
     }
 
     @PatchMapping("/events/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
     public EventFullDto updateEvent(@PathVariable("eventId") Long eventId,
             @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
-        return null;
+        return eventAdminService.updateEventAdmin(eventId, updateEventAdminRequest);
     }
 
     @GetMapping("/users")

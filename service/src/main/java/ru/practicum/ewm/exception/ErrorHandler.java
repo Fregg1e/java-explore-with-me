@@ -5,10 +5,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.ewm.exception.model.AlreadyExistException;
-import ru.practicum.ewm.exception.model.ApiError;
-import ru.practicum.ewm.exception.model.EventDateException;
-import ru.practicum.ewm.exception.model.NotFoundException;
+import ru.practicum.ewm.exception.model.*;
 
 import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
@@ -73,6 +70,18 @@ public class ErrorHandler {
                 e.getMessage(),
                 e.getReason(),
                 HttpStatus.NOT_FOUND,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiError handleEventStateException(final EventStateException e) {
+        return new ApiError(
+                null,
+                e.getMessage(),
+                e.getReason(),
+                HttpStatus.CONFLICT,
                 LocalDateTime.now()
         );
     }

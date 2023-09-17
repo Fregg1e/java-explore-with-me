@@ -35,10 +35,11 @@ public class PrivateController {
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
     public EventFullDto updateEventByUserIdAndEventId(@PathVariable("userId") Long userId,
             @PathVariable("eventId") Long eventId,
-            @RequestBody UpdateEventUserRequest updateEventUserRequest) {
-        return null;
+            @RequestBody @Valid UpdateEventUserRequest updateEventUserRequest) {
+        return eventPrivateService.updateEventByUserIdAndEventId(userId, eventId, updateEventUserRequest);
     }
 
     @GetMapping("/{userId}/events/{eventId}/requests")
