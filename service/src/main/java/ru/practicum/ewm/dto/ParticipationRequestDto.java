@@ -1,11 +1,15 @@
 package ru.practicum.ewm.dto;
 
+import lombok.Builder;
 import lombok.Data;
 import ru.practicum.ewm.model.EventRequestStatus;
 
+import java.time.LocalDateTime;
+
 @Data
+@Builder
 public class ParticipationRequestDto {
-    private String created;
+    private LocalDateTime created;
     private Long event;
     private Long id;
     private Long requester;

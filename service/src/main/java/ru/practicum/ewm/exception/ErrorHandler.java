@@ -38,21 +38,10 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({AlreadyExistException.class, EventDateException.class, EventStateException.class,
+            RequestException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleAlreadyExistException(final AlreadyExistException e) {
-        return new ApiError(
-                null,
-                e.getMessage(),
-                e.getReason(),
-                HttpStatus.CONFLICT,
-                LocalDateTime.now()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleEventDateException(final EventDateException e) {
+    public ApiError handleAlreadyExistException(final ConflictException e) {
         return new ApiError(
                 null,
                 e.getMessage(),
@@ -70,18 +59,6 @@ public class ErrorHandler {
                 e.getMessage(),
                 e.getReason(),
                 HttpStatus.NOT_FOUND,
-                LocalDateTime.now()
-        );
-    }
-
-    @ExceptionHandler
-    @ResponseStatus(HttpStatus.CONFLICT)
-    public ApiError handleEventStateException(final EventStateException e) {
-        return new ApiError(
-                null,
-                e.getMessage(),
-                e.getReason(),
-                HttpStatus.CONFLICT,
                 LocalDateTime.now()
         );
     }

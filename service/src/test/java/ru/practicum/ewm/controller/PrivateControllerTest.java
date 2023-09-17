@@ -8,7 +8,9 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.model.EventRequestStatus;
 import ru.practicum.ewm.service.EventPrivateService;
+import ru.practicum.ewm.service.RequestService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -29,6 +31,8 @@ class PrivateControllerTest {
     private MockMvc mockMvc;
     @MockBean
     private EventPrivateService eventPrivateService;
+    @MockBean
+    private RequestService requestService;
 
     @Test
     void createEventTest_whenEventValid_thenStatusIsCreated() throws Exception {
@@ -145,5 +149,23 @@ class PrivateControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createRequestTest_whenRequestCreating_thenStatusIsCreated() throws Exception {
+        ParticipationRequestDto participationRequestDto = ParticipationRequestDto.builder()
+                .status(EventRequestStatus.PENDING)
+                .created(LocalDateTime.now())
+                .requester(1L)
+                .event(1L)
+                .build();
+        when(requestService.createRequest(any(), any())).thenReturn(participationRequestDto);
+
+        mockMvc.perform(post("/users/1/requests")
+                        .param("eventId", "1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
     }
 }

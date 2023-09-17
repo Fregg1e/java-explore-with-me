@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.service.EventPrivateService;
+import ru.practicum.ewm.service.RequestService;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PrivateController {
     private final EventPrivateService eventPrivateService;
+    private final RequestService requestService;
 
     @GetMapping("/{userId}/events")
     public List<EventShortDto> getEventsByUserId(@PathVariable("userId") Long userId,
@@ -61,9 +63,10 @@ public class PrivateController {
     }
 
     @PostMapping("/{userId}/requests")
+    @ResponseStatus(HttpStatus.CREATED)
     public ParticipationRequestDto createRequest(@PathVariable("userId") Long userId,
-            @RequestParam(value = "eventId ")  Long eventId ) {
-        return null;
+            @RequestParam(value = "eventId")  Long eventId ) {
+        return requestService.createRequest(userId, eventId);
     }
 
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
