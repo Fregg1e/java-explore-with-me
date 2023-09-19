@@ -10,14 +10,14 @@ import ru.practicum.ewm.exception.model.EventStateException;
 import ru.practicum.ewm.exception.model.NotFoundException;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.model.*;
-import ru.practicum.ewm.repository.CategoryRepository;
-import ru.practicum.ewm.repository.EventRepository;
-import ru.practicum.ewm.repository.LocationRepository;
-import ru.practicum.ewm.repository.UserRepository;
+import ru.practicum.ewm.repository.*;
 import ru.practicum.ewm.service.EventAdminService;
 import ru.practicum.ewm.service.EventPrivateService;
+import ru.practicum.ewm.utils.OffsetPageRequest;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -28,6 +28,7 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
+    private final RequestRepository requestRepository;
 
 
     @Override
@@ -114,8 +115,41 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
                 event.setState(EventState.CANCELED);
             }
         }
-        //TODO: добавить views and confirmedRequest
-        return EventMapper.fromEventToEventFullDto(eventRepository.save(event));
+        EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(eventRepository.save(event));
+        Integer confirmedRequest = getConfirmedRequest(eventFullDto.getId());
+        eventFullDto.setConfirmedRequests(confirmedRequest);
+        //TODO: добавить views
+        return eventFullDto;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getEventsByUserId(Long userId, Integer from, Integer size) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
+                String.format("Пользователя с ID = %d не существует.", userId)));
+        //TODO: добавить views
+        return eventRepository.getEventsByUserId(user.getId(), new OffsetPageRequest(from, size))
+                .stream().map(EventMapper::fromEventToEventShortDto)
+                .peek(e -> e.setConfirmedRequests(getConfirmedRequest(e.getId())))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventFullDto getEventByUserIdAndEventId(Long userId, Long eventId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
+                String.format("Пользователя с ID = %d не существует.", userId)));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено.",
+                        String.format("Событие с ID = %d не существует.", eventId)));
+        if (!event.getInitiator().getId().equals(user.getId())) {
+            throw new NotFoundException("Событие не найдено.",
+                    String.format("Событие с ID = %d не существует.", eventId));
+        }
+        EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
+        eventFullDto.setConfirmedRequests(getConfirmedRequest(eventFullDto.getId()));
+        //TODO: добавить views
+        return eventFullDto;
     }
 
     @Override
@@ -170,8 +204,14 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
                 event.setState(EventState.CANCELED);
             }
         }
-        //TODO: добавить views and confirmedRequest
-        return EventMapper.fromEventToEventFullDto(eventRepository.save(event));
+        EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(eventRepository.save(event));
+        Integer confirmedRequest = requestRepository.getCountApprovedRequestsByEventId(eventFullDto.getId());
+        if (confirmedRequest == null) {
+            confirmedRequest = 0;
+        }
+        eventFullDto.setConfirmedRequests(confirmedRequest);
+        //TODO: добавить views
+        return eventFullDto;
     }
 
     private void setNewCategory(Event event, Long categoryId) {
@@ -187,5 +227,13 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
             location = locationRepository.save(Location.builder().lat(lat).lon(lon).build());
         }
         event.setLocation(location);
+    }
+
+    private Integer getConfirmedRequest(Long eventId) {
+        Integer confirmedRequest = requestRepository.getCountApprovedRequestsByEventId(eventId);
+        if (confirmedRequest == null) {
+            confirmedRequest = 0;
+        }
+        return confirmedRequest;
     }
 }

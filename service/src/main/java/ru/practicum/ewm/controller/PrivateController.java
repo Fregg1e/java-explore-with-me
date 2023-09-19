@@ -18,10 +18,11 @@ public class PrivateController {
     private final RequestService requestService;
 
     @GetMapping("/{userId}/events")
+    @ResponseStatus(HttpStatus.OK)
     public List<EventShortDto> getEventsByUserId(@PathVariable("userId") Long userId,
             @RequestParam(value = "from", defaultValue = "0")  Integer from,
             @RequestParam(value = "size", defaultValue = "10")  Integer size) {
-        return null;
+        return eventPrivateService.getEventsByUserId(userId, from, size);
     }
 
     @PostMapping("/{userId}/events")
@@ -31,9 +32,10 @@ public class PrivateController {
     }
 
     @GetMapping("/{userId}/events/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
     public EventFullDto getEventByUserIdAndEventId(@PathVariable("userId") Long userId,
             @PathVariable("eventId") Long eventId) {
-        return null;
+        return eventPrivateService.getEventByUserIdAndEventId(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}")
@@ -58,8 +60,9 @@ public class PrivateController {
     }
 
     @GetMapping("/{userId}/requests")
+    @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getRequestsByUserId(@PathVariable("userId") Long userId) {
-        return null;
+        return requestService.getRequestsByUserId(userId);
     }
 
     @PostMapping("/{userId}/requests")
@@ -70,8 +73,9 @@ public class PrivateController {
     }
 
     @PatchMapping("/{userId}/requests/{requestId}/cancel")
+    @ResponseStatus(HttpStatus.OK)
     public ParticipationRequestDto cancelRequest(@PathVariable("userId") Long userId,
             @PathVariable("requestId") Long requestId) {
-        return null;
+        return requestService.cancelRequest(userId, requestId);
     }
 }

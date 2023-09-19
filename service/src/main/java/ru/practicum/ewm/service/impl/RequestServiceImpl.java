@@ -16,6 +16,8 @@ import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.RequestService;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -56,5 +58,28 @@ public class RequestServiceImpl implements RequestService {
                 .status(event.getRequestModeration() ? EventRequestStatus.PENDING : EventRequestStatus.CONFIRMED)
                 .build();
         return RequestMapper.fromRequestToParticipationRequestDto(requestRepository.save(request));
+    }
+
+    @Override
+    public ParticipationRequestDto cancelRequest(Long userId, Long requestId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
+                String.format("Пользователя с ID = %d не существует.", userId)));
+        Request request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Запрос не найден.",
+                        String.format("Запрос с ID = %d не существует.", requestId)));
+        if (!request.getRequester().equals(user.getId())) {
+            throw new NotFoundException("Запрос не найден.",
+                    String.format("Запрос с ID = %d не существует.", requestId));
+        }
+        request.setStatus(EventRequestStatus.REJECTED);
+        return RequestMapper.fromRequestToParticipationRequestDto(requestRepository.save(request));
+    }
+
+    @Override
+    public List<ParticipationRequestDto> getRequestsByUserId(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
+                String.format("Пользователя с ID = %d не существует.", userId)));
+        return requestRepository.getRequestsByUserId(user.getId()).stream()
+                .map(RequestMapper::fromRequestToParticipationRequestDto).collect(Collectors.toList());
     }
 }
