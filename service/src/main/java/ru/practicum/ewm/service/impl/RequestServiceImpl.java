@@ -16,6 +16,7 @@ import ru.practicum.ewm.repository.UserRepository;
 import ru.practicum.ewm.service.RequestService;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -76,10 +77,27 @@ public class RequestServiceImpl implements RequestService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ParticipationRequestDto> getRequestsByUserId(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
                 String.format("Пользователя с ID = %d не существует.", userId)));
         return requestRepository.getRequestsByUserId(user.getId()).stream()
                 .map(RequestMapper::fromRequestToParticipationRequestDto).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ParticipationRequestDto> getEventRequests(Long userId, Long eventId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
+                String.format("Пользователя с ID = %d не существует.", userId)));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено.",
+                        String.format("Событие с ID = %d не существует.", eventId)));
+        if (!event.getInitiator().getId().equals(user.getId())) {
+            return Collections.emptyList();
+        }
+        return requestRepository.getRequestsByEventId(event.getId()).stream()
+                .map(RequestMapper::fromRequestToParticipationRequestDto)
+                .collect(Collectors.toList());
     }
 }

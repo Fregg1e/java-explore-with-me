@@ -47,9 +47,10 @@ public class PrivateController {
     }
 
     @GetMapping("/{userId}/events/{eventId}/requests")
+    @ResponseStatus(HttpStatus.OK)
     public List<ParticipationRequestDto> getEventRequests(@PathVariable("userId") Long userId,
             @PathVariable("eventId") Long eventId) {
-        return null;
+        return requestService.getEventRequests(userId, eventId);
     }
 
     @PatchMapping("/{userId}/events/{eventId}/requests")

@@ -273,7 +273,7 @@ class RequestServiceImplIntegrationTest {
     }
 
     @Test
-    void getRequestsByUserIdTest_whenSuccess_thenStatusIsOk() {
+    void getRequestsByUserIdTest_whenSuccess_thenReturnRequests() {
         User user = User.builder().name("test").email("test@email.com").build();
         entityManager.persist(user);
         User requester1 = User.builder().name("requester1").email("requester1@email.com").build();
@@ -308,6 +308,50 @@ class RequestServiceImplIntegrationTest {
         entityManager.persist(request);
 
         List<ParticipationRequestDto> requestDtos = requestService.getRequestsByUserId(requester1.getId());
+
+        assertEquals(1, requestDtos.size());
+        assertEquals(request.getEvent(), requestDtos.get(0).getEvent());
+        assertEquals(request.getRequester(), requestDtos.get(0).getRequester());
+        assertEquals(request.getStatus(), requestDtos.get(0).getStatus());
+        assertEquals(request.getCreated(), requestDtos.get(0).getCreated());
+    }
+
+    @Test
+    void getEventRequestsTest_whenSuccess_thenReturnRequests() {
+        User user = User.builder().name("test").email("test@email.com").build();
+        entityManager.persist(user);
+        User requester1 = User.builder().name("requester1").email("requester1@email.com").build();
+        entityManager.persist(requester1);
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+        Location location = Location.builder().lat(55.754167F).lon(37.62F).build();
+        entityManager.persist(location);
+        Event event = Event.builder()
+                .annotation("Сплав на байдарках похож на полет.")
+                .category(category)
+                .createdOn(LocalDateTime.now().minusDays(2))
+                .description("Сплав на байдарках похож на полет. На спокойной воде — это парение. "
+                        + "На бурной, порожистой — выполнение фигур высшего пилотажа. "
+                        + "И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.")
+                .eventDate(LocalDateTime.now().plusHours(20))
+                .initiator(user)
+                .location(location)
+                .paid(false)
+                .participantLimit(1)
+                .requestModeration(true)
+                .state(EventState.PUBLISHED)
+                .title("Сплав на байдарках")
+                .build();
+        entityManager.persist(event);
+        Request request = Request.builder()
+                .created(LocalDateTime.now().minusDays(1))
+                .status(EventRequestStatus.CONFIRMED)
+                .event(event.getId())
+                .requester(requester1.getId())
+                .build();
+        entityManager.persist(request);
+
+        List<ParticipationRequestDto> requestDtos = requestService.getEventRequests(user.getId(), event.getId());
 
         assertEquals(1, requestDtos.size());
         assertEquals(request.getEvent(), requestDtos.get(0).getEvent());

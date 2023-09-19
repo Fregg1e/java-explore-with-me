@@ -239,4 +239,20 @@ class PrivateControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void getEventRequestsTest_whenSuccess_thenStatusIsOk() throws Exception {
+        ParticipationRequestDto participationRequestDto = ParticipationRequestDto.builder()
+                .status(EventRequestStatus.REJECTED)
+                .created(LocalDateTime.now())
+                .requester(1L)
+                .event(1L)
+                .build();
+        when(requestService.getEventRequests(any(), any())).thenReturn(List.of(participationRequestDto));
+
+        mockMvc.perform(get("/users/1/events/1/requests")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }
