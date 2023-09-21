@@ -255,4 +255,27 @@ class PrivateControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void changeEventRequestsStatusTest_whenSuccess_thenStatusIsOk() throws Exception {
+        EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest = EventRequestStatusUpdateRequest.builder()
+                .requestIds(List.of(1L))
+                .status(EventRequestUpdateStatus.CONFIRMED)
+                .build();
+        EventRequestStatusUpdateResult eventRequestStatusUpdateResult = EventRequestStatusUpdateResult.builder()
+                .confirmedRequests(List.of(ParticipationRequestDto.builder()
+                        .status(EventRequestStatus.REJECTED)
+                        .created(LocalDateTime.now())
+                        .requester(1L)
+                        .event(1L)
+                        .build())).build();
+        when(requestService.changeEventRequestsStatus(any(), any(), any())).thenReturn(eventRequestStatusUpdateResult);
+
+        mockMvc.perform(patch("/users/1/events/1/requests")
+                        .content(mapper.writeValueAsString(eventRequestStatusUpdateResult))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }

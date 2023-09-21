@@ -26,9 +26,9 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({ConstraintViolationException.class, RequestStatusException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleConstraintViolationException(final ConstraintViolationException e) {
+    public ApiError handleConstraintViolationException(final RuntimeException e) {
         return new ApiError(
                 null,
                 e.getMessage(),
