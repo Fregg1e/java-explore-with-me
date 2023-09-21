@@ -11,6 +11,7 @@ import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.exception.model.AlreadyExistException;
 import ru.practicum.ewm.exception.model.NotFoundException;
 import ru.practicum.ewm.service.CategoryAdminService;
+import ru.practicum.ewm.service.CompilationAdminService;
 import ru.practicum.ewm.service.EventAdminService;
 import ru.practicum.ewm.service.UserAdminService;
 
@@ -38,6 +39,8 @@ class AdminControllerTest {
     private CategoryAdminService categoryAdminService;
     @MockBean
     private EventAdminService eventAdminService;
+    @MockBean
+    private CompilationAdminService compilationAdminService;
 
     @Test
     void createUserTest_whenUserCorrect_thenReturnNewUser() throws Exception {
@@ -336,5 +339,27 @@ class AdminControllerTest {
                         .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void createCompilationTest_whenCorrect_thenStatusIsCreated() throws Exception {
+        NewCompilationDto newCompilationDto = NewCompilationDto.builder().title("test").build();
+        CompilationDto compilationDto = CompilationDto.builder().id(1L).title("test").pinned(false).build();
+        when(compilationAdminService.createCompilation(any())).thenReturn(compilationDto);
+
+        mockMvc.perform(post("/admin/compilations")
+                        .content(mapper.writeValueAsString(newCompilationDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void deleteCompilationTest_whenCorrect_thenNoContent() throws Exception {
+        mockMvc.perform(delete("/admin/compilations/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
     }
 }

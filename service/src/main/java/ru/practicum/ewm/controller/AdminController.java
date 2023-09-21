@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.EventState;
 import ru.practicum.ewm.service.CategoryAdminService;
+import ru.practicum.ewm.service.CompilationAdminService;
 import ru.practicum.ewm.service.EventAdminService;
 import ru.practicum.ewm.service.UserAdminService;
 
@@ -25,6 +26,7 @@ public class AdminController {
     private final UserAdminService userAdminService;
     private final CategoryAdminService categoryAdminService;
     private final EventAdminService eventAdminService;
+    private final CompilationAdminService compilationAdminService;
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
@@ -53,8 +55,8 @@ public class AdminController {
                 @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
             @RequestParam(value = "rangeEnd", required = false)
                 @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
-            @RequestParam(value = "from", defaultValue = "0") Integer from,
-            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero  Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size) {
         return eventAdminService.getEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
@@ -86,18 +88,21 @@ public class AdminController {
     }
 
     @PostMapping("/compilations")
-    public CompilationDto createCompilation(@RequestBody NewCompilationDto newCompilationDto) {
-        return null;
+    @ResponseStatus(HttpStatus.CREATED)
+    public CompilationDto createCompilation(@RequestBody @Valid NewCompilationDto newCompilationDto) {
+        return compilationAdminService.createCompilation(newCompilationDto);
     }
 
     @DeleteMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteCompilation(@PathVariable("compId") Long compId) {
-
+        compilationAdminService.deleteCompilation(compId);
     }
 
     @PatchMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.OK)
     public CompilationDto updateCompilation(@PathVariable("compId") Long compId,
             @RequestBody UpdateCompilationRequest updateCompilationRequest) {
-        return null;
+        return compilationAdminService.updateCompilation(compId, updateCompilationRequest);
     }
 }

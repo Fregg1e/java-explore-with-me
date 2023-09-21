@@ -4,6 +4,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 
 @NoArgsConstructor
@@ -48,6 +49,8 @@ public class Event {
     private EventState state;
     @Column(name = "title", nullable = false, length = 120)
     private String title;
+    @ManyToMany(mappedBy = "events", fetch = FetchType.LAZY)
+    private List<Compilation> compilations;
 
     @Override
     public boolean equals(Object o) {
