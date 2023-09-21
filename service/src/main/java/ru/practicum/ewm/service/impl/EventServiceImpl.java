@@ -214,6 +214,17 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
         return eventFullDto;
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventFullDto> getEventsAdmin(List<Long> users, List<EventState> states, List<Long> categories,
+            LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
+        return eventRepository.getEvents(users, states, categories, rangeStart, rangeEnd,
+                        new OffsetPageRequest(from, size))
+                .stream().map(EventMapper::fromEventToEventFullDto)
+                .peek(e -> e.setConfirmedRequests(getConfirmedRequest(e.getId())))
+                .collect(Collectors.toList());
+    }
+
     private void setNewCategory(Event event, Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена.",

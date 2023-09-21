@@ -308,4 +308,33 @@ class AdminControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
+
+    @Test
+    void getEventsTest_whenRequestIsValid_thenStatusIsOk() throws Exception {
+        EventFullDto eventFullDto = EventFullDto.builder()
+                .id(1L)
+                .annotation("Сплав на байдарках похож на полет.")
+                .category(CategoryDto.builder().id(1L).name("Сплав").build())
+                .confirmedRequests(0)
+                .createdOn(LocalDateTime.now())
+                .description("Сплав на байдарках похож на полет. На спокойной воде — это парение. "
+                        + "На бурной, порожистой — выполнение фигур высшего пилотажа. "
+                        + "И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.")
+                .eventDate(LocalDateTime.now().plusDays(3))
+                .location(LocationDto.builder().lat(55.754167F).lon(37.62F).build())
+                .paid(true)
+                .participantLimit(10)
+                .requestModeration(false)
+                .title("Сплав на байдарках")
+                .build();
+        when(eventAdminService.getEventsAdmin(any(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(List.of(eventFullDto));
+
+        mockMvc.perform(get("/admin/events")
+                        .param("users", "1")
+                        .param("states", "PENDING")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
 }

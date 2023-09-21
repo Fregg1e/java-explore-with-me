@@ -45,6 +45,7 @@ public class AdminController {
     }
 
     @GetMapping("/events")
+    @ResponseStatus(HttpStatus.OK)
     public List<EventFullDto> getEvents(@RequestParam(value = "users", required = false) List<Long> users,
             @RequestParam(value = "states", required = false) List<EventState> states,
             @RequestParam(value = "categories", required = false) List<Long> categories,
@@ -54,7 +55,7 @@ public class AdminController {
                 @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
             @RequestParam(value = "from", defaultValue = "0") Integer from,
             @RequestParam(value = "size", defaultValue = "10") Integer size) {
-        return null;
+        return eventAdminService.getEventsAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
     }
 
     @PatchMapping("/events/{eventId}")

@@ -572,4 +572,55 @@ class EventServiceImplIntegrationTest {
         assertEquals(event.getId(), eventFullDto.getId());
         assertEquals(0, eventFullDto.getConfirmedRequests());
     }
+
+    @Test
+    void getEventsAdminTest_whenGetByRangeStart_thenReturnOneEvent() {
+        User user = User.builder().name("test").email("test@email.com").build();
+        entityManager.persist(user);
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+        Location location = Location.builder().lat(55.754167F).lon(37.62F).build();
+        entityManager.persist(location);
+        LocalDateTime now = LocalDateTime.now();
+        Event event1 = Event.builder()
+                .annotation("Сплав1 на байдарках похож на полет.")
+                .category(category)
+                .createdOn(LocalDateTime.now().minusDays(2))
+                .description("Сплав на байдарках похож на полет. На спокойной воде — это парение. "
+                        + "На бурной, порожистой — выполнение фигур высшего пилотажа. "
+                        + "И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.")
+                .eventDate(now.plusHours(10))
+                .initiator(user)
+                .location(location)
+                .paid(false)
+                .participantLimit(10)
+                .requestModeration(false)
+                .state(EventState.PUBLISHED)
+                .title("Сплав1 на байдарках")
+                .build();
+        entityManager.persist(event1);
+        Event event2 = Event.builder()
+                .annotation("Сплав2 на байдарках похож на полет.")
+                .category(category)
+                .createdOn(LocalDateTime.now().minusDays(2))
+                .description("Сплав на байдарках похож на полет. На спокойной воде — это парение. "
+                        + "На бурной, порожистой — выполнение фигур высшего пилотажа. "
+                        + "И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.")
+                .eventDate(now.plusHours(20))
+                .initiator(user)
+                .location(location)
+                .paid(false)
+                .participantLimit(10)
+                .requestModeration(false)
+                .state(EventState.PUBLISHED)
+                .title("Сплав2 на байдарках")
+                .build();
+        entityManager.persist(event2);
+
+        List<EventFullDto> eventFullDtos = eventService.getEventsAdmin(null, null, null,
+                now.plusHours(15), null, 0, 10);
+
+        assertEquals(1, eventFullDtos.size());
+        assertEquals(event2.getId(), eventFullDtos.get(0).getId());
+    }
 }
