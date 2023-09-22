@@ -16,15 +16,18 @@ import ru.practicum.ewm.model.Event;
 import ru.practicum.ewm.repository.CompilationRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.service.CompilationAdminService;
+import ru.practicum.ewm.service.CompilationPublicService;
+import ru.practicum.ewm.utils.OffsetPageRequest;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class CompilationServiceImpl implements CompilationAdminService {
+public class CompilationServiceImpl implements CompilationAdminService, CompilationPublicService {
     private final CompilationRepository compilationRepository;
     private final EventRepository eventRepository;
 
@@ -84,5 +87,21 @@ public class CompilationServiceImpl implements CompilationAdminService {
             compilation.setTitle(updateCompilationRequest.getTitle());
         }
         return CompilationMapper.fromCompilationToCompilationDto(compilationRepository.save(compilation));
+    }
+
+    @Override
+    public List<CompilationDto> getCompilations(Boolean pinned, Integer from, Integer size) {
+        List<Compilation> compilations = compilationRepository.getCompilations(pinned,
+                new OffsetPageRequest(from, size));
+        return compilations.stream().map(CompilationMapper::fromCompilationToCompilationDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public CompilationDto getCompilationById(Long compId) {
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Подборка не найдена.",
+                        String.format("Подборки с ID = %d не существует.", compId)));
+        return CompilationMapper.fromCompilationToCompilationDto(compilation);
     }
 }

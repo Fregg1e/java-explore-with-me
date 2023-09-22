@@ -2,30 +2,42 @@ package ru.practicum.ewm.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.service.CompilationPublicService;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
+@Validated
 @RequiredArgsConstructor
 public class PublicController {
+    private final CompilationPublicService compilationPublicService;
+
     @GetMapping("/compilations")
+    @ResponseStatus(HttpStatus.OK)
     public List<CompilationDto> getCompilations(@RequestParam(value = "pinned", required = false) Boolean pinned,
-            @RequestParam(value = "from", defaultValue = "0")  Integer from,
-            @RequestParam(value = "size", defaultValue = "10")  Integer size) {
-        return null;
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1)  Integer size) {
+        return compilationPublicService.getCompilations(pinned, from, size);
     }
 
     @GetMapping("/compilations/{compId}")
+    @ResponseStatus(HttpStatus.OK)
     public CompilationDto getCompilationById(@PathVariable("compId") Long compId) {
-        return null;
+        return compilationPublicService.getCompilationById(compId);
     }
 
     @GetMapping("/categories")
-    public List<CategoryDto> getCategories(@RequestParam(value = "from", defaultValue = "0")  Integer from,
-            @RequestParam(value = "size", defaultValue = "10")  Integer size) {
+    public List<CategoryDto> getCategories(@RequestParam(value = "from", defaultValue = "0")
+                @PositiveOrZero  Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size) {
         return null;
     }
 
@@ -44,13 +56,13 @@ public class PublicController {
                 @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
             @RequestParam(value = "text", defaultValue = "false") Boolean onlyAvailable,
             @RequestParam(value = "text", defaultValue = "VIEWS") EventSort sort,
-            @RequestParam(value = "from", defaultValue = "0")  Integer from,
-            @RequestParam(value = "size", defaultValue = "10")  Integer size) {
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size, HttpServletRequest request) {
         return null;
     }
 
     @GetMapping("/events/{id}")
-    public EventFullDto getEventById(@PathVariable("id") Long id) {
+    public EventFullDto getEventById(@PathVariable("id") Long id, HttpServletRequest request) {
         return null;
     }
 }

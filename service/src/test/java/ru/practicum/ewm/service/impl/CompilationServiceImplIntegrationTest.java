@@ -77,4 +77,35 @@ class CompilationServiceImplIntegrationTest {
         assertEquals(compilation.getPinned(), compilationDto.getPinned());
         assertEquals(updateCompilationRequest.getTitle(), compilationDto.getTitle());
     }
+
+    @Test
+    void getCompilationsTest_whenCompilationsNotFound_thenReturnEmptyList() {
+        List<CompilationDto> compilationDtos = compilationService.getCompilations(null, 0, 10);
+
+        assertTrue(compilationDtos.isEmpty());
+    }
+
+    @Test
+    void getCompilationsTest_whenCompilationsFound_thenReturnCompilationsList() {
+        Compilation compilation = Compilation.builder().title("test").pinned(false).build();
+        entityManager.persist(compilation);
+
+        List<CompilationDto> compilationDtos = compilationService.getCompilations(null, 0, 10);
+
+        assertFalse(compilationDtos.isEmpty());
+        assertEquals(1, compilationDtos.size());
+        assertEquals(compilation.getId(), compilationDtos.get(0).getId());
+    }
+
+    @Test
+    void getCompilationByIdTest_whenCompilationFound_thenReturnCompilation() {
+        Compilation compilation = Compilation.builder().title("test").pinned(false).build();
+        entityManager.persist(compilation);
+
+        CompilationDto compilationDto = compilationService.getCompilationById(compilation.getId());
+
+        assertEquals(compilation.getId(), compilationDto.getId());
+        assertEquals(compilation.getTitle(), compilationDto.getTitle());
+        assertEquals(compilation.getPinned(), compilationDto.getPinned());
+    }
 }
