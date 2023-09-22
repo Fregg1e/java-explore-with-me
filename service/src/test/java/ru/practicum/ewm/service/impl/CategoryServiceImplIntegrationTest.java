@@ -16,9 +16,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Transactional
 @SpringBootTest
@@ -111,5 +111,29 @@ class CategoryServiceImplIntegrationTest {
         CategoryDto updateCategoryDto = CategoryDto.builder().name("updateTest").build();
 
         assertThrows(NotFoundException.class, () -> categoryService.updateCategory(999L, updateCategoryDto));
+    }
+
+    @Test
+    void getCategoriesTest_whenCategoryIsExists_thenReturnListCategories() {
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+
+        List<CategoryDto> categoryDtos = categoryService.getCategories(0, 10);
+
+        assertFalse(categoryDtos.isEmpty());
+        assertEquals(1, categoryDtos.size());
+        assertEquals(category.getId(), categoryDtos.get(0).getId());
+        assertEquals(category.getName(), categoryDtos.get(0).getName());
+    }
+
+    @Test
+    void getCategoryByIdTest_whenCategoryIsExists_thenReturnCategoryDto() {
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+
+        CategoryDto categoryDto = categoryService.getCategoryById(category.getId());
+
+        assertEquals(category.getId(), categoryDto.getId());
+        assertEquals(category.getName(), categoryDto.getName());
     }
 }

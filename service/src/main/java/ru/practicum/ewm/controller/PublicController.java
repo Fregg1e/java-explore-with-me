@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.service.CategoryPublicService;
 import ru.practicum.ewm.service.CompilationPublicService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -19,6 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PublicController {
     private final CompilationPublicService compilationPublicService;
+    private final CategoryPublicService categoryPublicService;
 
     @GetMapping("/compilations")
     @ResponseStatus(HttpStatus.OK)
@@ -35,15 +37,17 @@ public class PublicController {
     }
 
     @GetMapping("/categories")
+    @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getCategories(@RequestParam(value = "from", defaultValue = "0")
                 @PositiveOrZero  Integer from,
             @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size) {
-        return null;
+        return categoryPublicService.getCategories(from, size);
     }
 
     @GetMapping("/categories/{catId}")
+    @ResponseStatus(HttpStatus.OK)
     public CategoryDto getCategoryById(@PathVariable("catId") Long catId) {
-        return null;
+        return categoryPublicService.getCategoryById(catId);
     }
 
     @GetMapping("/events")

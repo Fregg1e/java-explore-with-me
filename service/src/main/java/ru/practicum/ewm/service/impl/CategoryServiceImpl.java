@@ -14,12 +14,17 @@ import ru.practicum.ewm.model.Category;
 import ru.practicum.ewm.repository.CategoryRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.service.CategoryAdminService;
+import ru.practicum.ewm.service.CategoryPublicService;
+import ru.practicum.ewm.utils.OffsetPageRequest;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements CategoryAdminService {
+public class CategoryServiceImpl implements CategoryAdminService, CategoryPublicService {
     private final CategoryRepository categoryRepository;
     private final EventRepository eventRepository;
 
@@ -63,6 +68,20 @@ public class CategoryServiceImpl implements CategoryAdminService {
                     "Категория с таким name уже существует!");
         }
         log.debug("Категория обновлена: {}", category);
+        return CategoryMapper.fromCategoryToCategoryDto(category);
+    }
+
+    @Override
+    public List<CategoryDto> getCategories(Integer from, Integer size) {
+        return categoryRepository.findAll(new OffsetPageRequest(from, size)).stream()
+                .map(CategoryMapper::fromCategoryToCategoryDto).collect(Collectors.toList());
+    }
+
+    @Override
+    public CategoryDto getCategoryById(Long catId) {
+        Category category = categoryRepository.findById(catId)
+                .orElseThrow(() -> new NotFoundException("Категория не найдена.",
+                        String.format("Категория с ID = %d не существует.", catId)));
         return CategoryMapper.fromCategoryToCategoryDto(category);
     }
 }
