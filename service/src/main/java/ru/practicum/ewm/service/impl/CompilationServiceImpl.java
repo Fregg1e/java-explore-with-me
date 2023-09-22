@@ -64,6 +64,25 @@ public class CompilationServiceImpl implements CompilationAdminService {
 
     @Override
     public CompilationDto updateCompilation(Long compId, UpdateCompilationRequest updateCompilationRequest) {
-        return null;
+        Compilation compilation = compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Подборка не найдена.",
+                        String.format("Подборки с ID = %d не существует.", compId)));
+        if (updateCompilationRequest.getEvents() != null) {
+            List<Event> events = new ArrayList<>();
+            for (Long eventId : updateCompilationRequest.getEvents()) {
+                Event event = eventRepository.findById(eventId)
+                        .orElseThrow(() -> new NotFoundException("Событие не найдено.",
+                                String.format("Событие с ID = %d не существует.", eventId)));
+                events.add(event);
+            }
+            compilation.setEvents(events);
+        }
+        if (updateCompilationRequest.getPinned() != null) {
+            compilation.setPinned(updateCompilationRequest.getPinned());
+        }
+        if (updateCompilationRequest.getTitle() != null) {
+            compilation.setTitle(updateCompilationRequest.getTitle());
+        }
+        return CompilationMapper.fromCompilationToCompilationDto(compilationRepository.save(compilation));
     }
 }

@@ -8,13 +8,13 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.CompilationDto;
 import ru.practicum.ewm.dto.NewCompilationDto;
+import ru.practicum.ewm.dto.UpdateCompilationRequest;
 import ru.practicum.ewm.exception.model.NotFoundException;
 import ru.practicum.ewm.model.Compilation;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
-import java.util.Collections;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -49,7 +49,7 @@ class CompilationServiceImplIntegrationTest {
     }
 
     @Test
-    void deleteCompilation() {
+    void deleteCompilationTest_whenDelete_thenCompilationDoesNotExists() {
         Compilation compilation = Compilation.builder().title("test").pinned(false).build();
         entityManager.persist(compilation);
 
@@ -62,5 +62,19 @@ class CompilationServiceImplIntegrationTest {
                 .getSingleResult();
 
         assertEquals(0, count);
+    }
+
+    @Test
+    void updateCompilationTest_whenUpdateCompilation_thenReturnUpdatedCompilation() {
+        Compilation compilation = Compilation.builder().title("test").pinned(false).build();
+        entityManager.persist(compilation);
+        UpdateCompilationRequest updateCompilationRequest = UpdateCompilationRequest.builder().title("updateTest")
+                .build();
+
+        CompilationDto compilationDto = compilationService.updateCompilation(compilation.getId(),
+                updateCompilationRequest);
+
+        assertEquals(compilation.getPinned(), compilationDto.getPinned());
+        assertEquals(updateCompilationRequest.getTitle(), compilationDto.getTitle());
     }
 }

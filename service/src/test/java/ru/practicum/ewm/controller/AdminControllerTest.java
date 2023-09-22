@@ -17,6 +17,7 @@ import ru.practicum.ewm.service.UserAdminService;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static org.hamcrest.Matchers.is;
@@ -361,5 +362,20 @@ class AdminControllerTest {
                         .characterEncoding(StandardCharsets.UTF_8)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void updateCompilationTest_whenUpdate_thenStatusIsOk() throws Exception {
+        UpdateCompilationRequest updateCompilationRequest = UpdateCompilationRequest.builder().pinned(true).build();
+        CompilationDto compilationDto = CompilationDto.builder().events(Collections.emptyList()).pinned(true)
+                .title("test").build();
+        when(compilationAdminService.updateCompilation(any(), any())).thenReturn(compilationDto);
+
+        mockMvc.perform(patch("/admin/compilations/1")
+                        .content(mapper.writeValueAsString(updateCompilationRequest))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 }

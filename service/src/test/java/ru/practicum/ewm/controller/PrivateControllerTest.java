@@ -272,7 +272,7 @@ class PrivateControllerTest {
         when(requestService.changeEventRequestsStatus(any(), any(), any())).thenReturn(eventRequestStatusUpdateResult);
 
         mockMvc.perform(patch("/users/1/events/1/requests")
-                        .content(mapper.writeValueAsString(eventRequestStatusUpdateResult))
+                        .content(mapper.writeValueAsString(eventRequestStatusUpdateRequest))
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
