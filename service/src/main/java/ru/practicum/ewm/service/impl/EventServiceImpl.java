@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.client.EventStatsClient;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.exception.model.EventDateException;
 import ru.practicum.ewm.exception.model.EventStateException;
@@ -13,22 +14,27 @@ import ru.practicum.ewm.model.*;
 import ru.practicum.ewm.repository.*;
 import ru.practicum.ewm.service.EventAdminService;
 import ru.practicum.ewm.service.EventPrivateService;
+import ru.practicum.ewm.service.EventPublicService;
 import ru.practicum.ewm.utils.OffsetPageRequest;
 
+import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class EventServiceImpl implements EventPrivateService, EventAdminService {
+public class EventServiceImpl implements EventPrivateService, EventAdminService, EventPublicService {
+    private final static String APP_NAME = "ewm-main-service";
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final LocationRepository locationRepository;
     private final RequestRepository requestRepository;
+    private final EventStatsClient eventStatsClient;
 
 
     @Override
@@ -116,9 +122,8 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
             }
         }
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(eventRepository.save(event));
-        Integer confirmedRequest = getConfirmedRequest(eventFullDto.getId());
-        eventFullDto.setConfirmedRequests(confirmedRequest);
-        //TODO: добавить views
+        eventFullDto.setConfirmedRequests(getConfirmedRequest(eventFullDto.getId()));
+        setViewsEventFullDto(List.of(eventFullDto));
         return eventFullDto;
     }
 
@@ -127,11 +132,13 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
     public List<EventShortDto> getEventsByUserId(Long userId, Integer from, Integer size) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
                 String.format("Пользователя с ID = %d не существует.", userId)));
-        //TODO: добавить views
-        return eventRepository.getEventsByUserId(user.getId(), new OffsetPageRequest(from, size))
+        List<EventShortDto> eventShortDtos = eventRepository.getEventsByUserId(user.getId(),
+                        new OffsetPageRequest(from, size))
                 .stream().map(EventMapper::fromEventToEventShortDto)
                 .peek(e -> e.setConfirmedRequests(getConfirmedRequest(e.getId())))
                 .collect(Collectors.toList());
+        setViewsEventShortDto(eventShortDtos);
+        return eventShortDtos;
     }
 
     @Override
@@ -148,7 +155,7 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
         }
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
         eventFullDto.setConfirmedRequests(getConfirmedRequest(eventFullDto.getId()));
-        //TODO: добавить views
+        setViewsEventFullDto(List.of(eventFullDto));
         return eventFullDto;
     }
 
@@ -205,12 +212,8 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
             }
         }
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(eventRepository.save(event));
-        Integer confirmedRequest = requestRepository.getCountApprovedRequestsByEventId(eventFullDto.getId());
-        if (confirmedRequest == null) {
-            confirmedRequest = 0;
-        }
-        eventFullDto.setConfirmedRequests(confirmedRequest);
-        //TODO: добавить views
+        eventFullDto.setConfirmedRequests(getConfirmedRequest(eventFullDto.getId()));
+        setViewsEventFullDto(List.of(eventFullDto));
         return eventFullDto;
     }
 
@@ -218,11 +221,76 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
     @Transactional(readOnly = true)
     public List<EventFullDto> getEventsAdmin(List<Long> users, List<EventState> states, List<Long> categories,
             LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
-        return eventRepository.getEvents(users, states, categories, rangeStart, rangeEnd,
-                        new OffsetPageRequest(from, size))
+        List<EventFullDto> eventFullDtos = eventRepository.getEventsAdmin(users, states, categories, rangeStart,
+                        rangeEnd, new OffsetPageRequest(from, size))
                 .stream().map(EventMapper::fromEventToEventFullDto)
                 .peek(e -> e.setConfirmedRequests(getConfirmedRequest(e.getId())))
                 .collect(Collectors.toList());
+        setViewsEventFullDto(eventFullDtos);
+        return eventFullDtos;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventShortDto> getEvents(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
+            LocalDateTime rangeEnd, Boolean onlyAvailable, EventSort sort, Integer from, Integer size,
+            HttpServletRequest request) {
+        List<Event> events;
+        if (rangeStart == null && rangeEnd == null) {
+            events = eventRepository.getEvents(text, categories, paid, LocalDateTime.now(), null,
+                    new OffsetPageRequest(from, size));
+        } else {
+            events = eventRepository.getEvents(text, categories, paid, rangeStart, rangeEnd,
+                    new OffsetPageRequest(from, size));
+        }
+        List<EventShortDto> eventShortDtos = new ArrayList<>();
+        for (Event event : events) {
+            Integer confirmedRequest = getConfirmedRequest(event.getId());
+            if (onlyAvailable && confirmedRequest.equals(event.getParticipantLimit())) {
+                continue;
+            }
+            EventShortDto eventShortDto = EventMapper.fromEventToEventShortDto(event);
+            eventShortDto.setConfirmedRequests(confirmedRequest);
+            eventShortDtos.add(eventShortDto);
+        }
+        setViewsEventShortDto(eventShortDtos);
+        if (sort != null && sort.equals(EventSort.EVENT_DATE)) {
+            eventShortDtos = eventShortDtos.stream().sorted(Comparator.comparing(EventShortDto::getEventDate))
+                    .collect(Collectors.toList());
+        }
+        if (sort != null && sort.equals(EventSort.VIEWS)) {
+            eventShortDtos = eventShortDtos.stream().sorted(Comparator.comparing(EventShortDto::getViews))
+                    .collect(Collectors.toList());
+        }
+        eventStatsClient.saveHit(EndpointHitDto.builder()
+                .app(APP_NAME)
+                .ip(request.getRemoteAddr())
+                .uri(request.getRequestURI())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build());
+        return eventShortDtos;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public EventFullDto getEventById(Long eventId, HttpServletRequest request) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new NotFoundException("Событие не найдено.",
+                        String.format("Событие с ID = %d не существует.", eventId)));
+        if (!event.getState().equals(EventState.PUBLISHED)) {
+            throw new NotFoundException("Событие не найдено.",
+                    String.format("Событие с ID = %d не существует.", event.getId()));
+        }
+        EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
+        eventFullDto.setConfirmedRequests(getConfirmedRequest(event.getId()));
+        eventStatsClient.saveHit(EndpointHitDto.builder()
+                .app(APP_NAME)
+                .ip(request.getRemoteAddr())
+                .uri(request.getRequestURI())
+                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .build());
+        setViewsEventFullDto(List.of(eventFullDto));
+        return eventFullDto;
     }
 
     private void setNewCategory(Event event, Long categoryId) {
@@ -246,5 +314,27 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService 
             confirmedRequest = 0;
         }
         return confirmedRequest;
+    }
+
+    private void setViewsEventShortDto(List<EventShortDto> eventShortDtos) {
+        if (!eventShortDtos.isEmpty()) {
+            Map<Long, Long> views = eventStatsClient.getViewsByIds(eventShortDtos.stream().map(EventShortDto::getId)
+                    .collect(Collectors.toList()));
+            for (EventShortDto eventShortDto : eventShortDtos) {
+                Long view = views.get(eventShortDto.getId());
+                eventShortDto.setViews(Objects.requireNonNullElse(view, 0L));
+            }
+        }
+    }
+
+    private void setViewsEventFullDto(List<EventFullDto> eventFullDtos) {
+        if (!eventFullDtos.isEmpty()) {
+            Map<Long, Long> views = eventStatsClient.getViewsByIds(eventFullDtos.stream().map(EventFullDto::getId)
+                    .collect(Collectors.toList()));
+            for (EventFullDto eventFullDto : eventFullDtos) {
+                Long view = views.get(eventFullDto.getId());
+                eventFullDto.setViews(Objects.requireNonNullElse(view, 0L));
+            }
+        }
     }
 }

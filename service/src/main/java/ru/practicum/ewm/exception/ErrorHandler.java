@@ -1,26 +1,79 @@
 package ru.practicum.ewm.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import ru.practicum.ewm.exception.model.*;
 
 import javax.validation.ConstraintViolationException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @RestControllerAdvice
 public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
+        List<String> errors = new ArrayList<String>();
+        for (FieldError error : e.getBindingResult().getFieldErrors()) {
+            errors.add(error.getField() + ": " + error.getDefaultMessage());
+        }
+        for (ObjectError error : e.getBindingResult().getGlobalErrors()) {
+            errors.add(error.getObjectName() + ": " + error.getDefaultMessage());
+        }
+        return new ApiError(
+                errors,
+                e.getLocalizedMessage(),
+                String.format("Ошибка с полем \"%s\".", e.getParameter()),
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingServletRequestPartException(final MissingServletRequestPartException e) {
+        String reason = "Пропущен параметр " + e.getRequestPartName();
         return new ApiError(
                 null,
-                e.getMessage(),
-                String.format("Ошибка с полем \"%s\".", e.getParameter()),
+                e.getLocalizedMessage(),
+                reason,
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMethodArgumentTypeMismatchException(final MethodArgumentTypeMismatchException e) {
+        String reason = e.getName() + " должен соответствовать следующему типу "
+                + Objects.requireNonNull(e.getRequiredType()).getName();
+        return new ApiError(
+                null,
+                e.getLocalizedMessage(),
+                reason,
+                HttpStatus.BAD_REQUEST,
+                LocalDateTime.now()
+        );
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiError handleMissingServletRequestParameterException (final MissingServletRequestParameterException e) {
+        String reason = "Пропущен параметр " + e.getParameterName();
+        return new ApiError(
+                null,
+                e.getLocalizedMessage(),
+                reason,
                 HttpStatus.BAD_REQUEST,
                 LocalDateTime.now()
         );
@@ -63,14 +116,13 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler
+    @ExceptionHandler({Exception.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleThrowable(final Throwable e) {
-        String reason = e.getCause() == null ? "Произошла ошибка." : e.getCause().toString();
+    public ApiError handleThrowable(final Exception e) {
         return new ApiError(
-                Arrays.stream(e.getStackTrace()).map(StackTraceElement::toString).collect(Collectors.toList()),
+                null,
+                e.getLocalizedMessage(),
                 "Произошла непредвиденная ошибка.",
-                reason,
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 LocalDateTime.now()
         );

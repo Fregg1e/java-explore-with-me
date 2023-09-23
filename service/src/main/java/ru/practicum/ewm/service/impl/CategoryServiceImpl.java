@@ -72,12 +72,14 @@ public class CategoryServiceImpl implements CategoryAdminService, CategoryPublic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryDto> getCategories(Integer from, Integer size) {
         return categoryRepository.findAll(new OffsetPageRequest(from, size)).stream()
                 .map(CategoryMapper::fromCategoryToCategoryDto).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryDto getCategoryById(Long catId) {
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена.",

@@ -4,8 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewm.client.EventStatsClient;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.exception.model.EventDateException;
 import ru.practicum.ewm.exception.model.EventStateException;
@@ -18,6 +21,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 @Transactional
 @SpringBootTest
@@ -25,6 +30,8 @@ import static org.junit.jupiter.api.Assertions.*;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 class EventServiceImplIntegrationTest {
     private final EntityManager entityManager;
+    @MockBean
+    private final EventStatsClient eventStatsClient;
     private final EventServiceImpl eventService;
 
     @Test
@@ -622,5 +629,42 @@ class EventServiceImplIntegrationTest {
 
         assertEquals(1, eventFullDtos.size());
         assertEquals(event2.getId(), eventFullDtos.get(0).getId());
+    }
+
+    @Test
+    void getEventByIdTest_whenSuccess_thenReturnEvent() {
+        User user = User.builder().name("test").email("test@email.com").build();
+        entityManager.persist(user);
+        Category category = Category.builder().name("test").build();
+        entityManager.persist(category);
+        Location location = Location.builder().lat(55.754167F).lon(37.62F).build();
+        entityManager.persist(location);
+        Event event = Event.builder()
+                .annotation("Сплав на байдарках похож на полет.")
+                .category(category)
+                .createdOn(LocalDateTime.now().minusDays(2))
+                .description("Сплав на байдарках похож на полет. На спокойной воде — это парение. "
+                        + "На бурной, порожистой — выполнение фигур высшего пилотажа. "
+                        + "И то, и другое дарят чувство обновления, феерические эмоции, яркие впечатления.")
+                .eventDate(LocalDateTime.now().plusHours(20))
+                .initiator(user)
+                .location(location)
+                .paid(false)
+                .participantLimit(10)
+                .requestModeration(false)
+                .state(EventState.PUBLISHED)
+                .title("Сплав на байдарках")
+                .build();
+        entityManager.persist(event);
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setRequestURI("test");
+        request.setRemoteAddr("test");
+        when(eventStatsClient.saveHit(any())).thenReturn(null);
+
+        EventFullDto eventFullDto = eventService.getEventById(event.getId(), request);
+
+        assertNotNull(eventFullDto);
+        assertEquals(event.getId(), eventFullDto.getId());
+        assertEquals(0, eventFullDto.getConfirmedRequests());
     }
 }

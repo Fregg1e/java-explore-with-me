@@ -1,7 +1,10 @@
 package ru.practicum.ewm.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import javax.validation.constraints.AssertTrue;
@@ -12,6 +15,8 @@ import java.time.LocalDateTime;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateEventUserRequest {
     @Size(min = 20, max = 2000, message = "Аннотация не соответствует размерам.")
     private String annotation;
@@ -20,6 +25,7 @@ public class UpdateEventUserRequest {
     @Size(min = 20, max = 7000, message = "Описание не соответствует размерам.")
     private String description;
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime eventDate;
     private LocationDto location;
     private Boolean paid;
