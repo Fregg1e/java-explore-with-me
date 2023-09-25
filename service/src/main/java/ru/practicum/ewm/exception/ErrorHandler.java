@@ -68,7 +68,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ApiError handleMissingServletRequestParameterException (final MissingServletRequestParameterException e) {
+    public ApiError handleMissingServletRequestParameterException(final MissingServletRequestParameterException e) {
         String reason = "Пропущен параметр " + e.getParameterName();
         return new ApiError(
                 null,

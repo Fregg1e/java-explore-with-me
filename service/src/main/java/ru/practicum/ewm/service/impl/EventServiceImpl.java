@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Transactional
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventPrivateService, EventAdminService, EventPublicService {
-    private final static String APP_NAME = "ewm-main-service";
+    private static final String APP_NAME = "ewm-main-service";
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
