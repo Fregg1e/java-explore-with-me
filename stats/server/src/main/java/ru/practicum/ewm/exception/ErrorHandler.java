@@ -7,12 +7,14 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ru.practicum.ewm.exception.model.DateRangeException;
 import ru.practicum.ewm.exception.model.ErrorResponse;
 
 @Slf4j
 @RestControllerAdvice
 public class ErrorHandler {
-    @ExceptionHandler({MissingServletRequestParameterException.class, ConversionFailedException.class})
+    @ExceptionHandler({MissingServletRequestParameterException.class, ConversionFailedException.class,
+            DateRangeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleAvailableException(final Exception e) {
         log.error("Произошло исключение!" + e.getMessage());

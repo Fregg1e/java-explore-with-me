@@ -1,7 +1,7 @@
 package ru.practicum.ewm.exception.model;
 
-public class RequestStatusException extends RuntimeException {
-    public RequestStatusException(String message) {
-        super(message);
+public class RequestStatusException extends ConflictException {
+    public RequestStatusException(String message, String reason) {
+        super(message, reason);
     }
 }

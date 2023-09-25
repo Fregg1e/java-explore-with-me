@@ -23,7 +23,7 @@ public class ErrorHandler {
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {
-        List<String> errors = new ArrayList<String>();
+        List<String> errors = new ArrayList<>();
         for (FieldError error : e.getBindingResult().getFieldErrors()) {
             errors.add(error.getField() + ": " + error.getDefaultMessage());
         }
@@ -79,7 +79,7 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler({ConstraintViolationException.class, RequestStatusException.class})
+    @ExceptionHandler({ConstraintViolationException.class, DateRangeException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ApiError handleConstraintViolationException(final RuntimeException e) {
         return new ApiError(
@@ -91,8 +91,8 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler({AlreadyExistException.class, EventDateException.class, EventStateException.class,
-            RequestException.class})
+    @ExceptionHandler({AlreadyExistException.class, EventDateException.class, RequestStatusException.class,
+            EventStateException.class, RequestException.class})
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiError handleAlreadyExistException(final ConflictException e) {
         return new ApiError(
@@ -116,9 +116,9 @@ public class ErrorHandler {
         );
     }
 
-    @ExceptionHandler({Exception.class})
+    @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ApiError handleThrowable(final Exception e) {
+    public ApiError handleThrowable(final Throwable e) {
         return new ApiError(
                 null,
                 e.getLocalizedMessage(),

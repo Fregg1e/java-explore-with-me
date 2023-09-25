@@ -11,8 +11,7 @@ import javax.validation.constraints.Size;
 @Builder
 public class NewUserRequest {
     @NotBlank(message = "Email не может быть пустым.")
-    @Email(regexp = "^(?=.{1,64}@)[A-Za-z0-9\\+_-]+(\\.[A-Za-z0-9\\+_-]+)*@"
-            + "[^-][A-Za-z0-9\\+-]+(\\.[A-Za-z0-9\\+-]+)*(\\.[A-Za-z]{2,})$",
+    @Email(regexp = "^.+@.+$",
             message = "Email не соответствует должному формату.")
     @Size(min = 6, max = 254, message = "Email не соответствует должной длине.")
     private String email;

@@ -107,6 +107,18 @@ class CategoryServiceImplIntegrationTest {
     }
 
     @Test
+    void updateCategoryTest_whenCategoryNameIsExists_thenAlreadyExistException() {
+        Category category1 = Category.builder().name("test1").build();
+        entityManager.persist(category1);
+        Category category2 = Category.builder().name("test2").build();
+        entityManager.persist(category2);
+        CategoryDto updateCategoryDto = CategoryDto.builder().name("test2").build();
+
+        assertThrows(AlreadyExistException.class, () -> categoryService.updateCategory(category1.getId(),
+                updateCategoryDto));
+    }
+
+    @Test
     void updateCategoryTest_whenCategoryIsNotExists_thenNotFoundException() {
         CategoryDto updateCategoryDto = CategoryDto.builder().name("updateTest").build();
 

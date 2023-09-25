@@ -52,7 +52,7 @@ class RequestServiceImplIntegrationTest {
                 .initiator(user)
                 .location(location)
                 .paid(false)
-                .participantLimit(0)
+                .participantLimit(2)
                 .requestModeration(false)
                 .state(EventState.PUBLISHED)
                 .title("Сплав на байдарках")
@@ -85,7 +85,7 @@ class RequestServiceImplIntegrationTest {
                 .initiator(user)
                 .location(location)
                 .paid(false)
-                .participantLimit(0)
+                .participantLimit(2)
                 .requestModeration(true)
                 .state(EventState.PUBLISHED)
                 .title("Сплав на байдарках")
@@ -274,7 +274,7 @@ class RequestServiceImplIntegrationTest {
         ParticipationRequestDto participationRequestDto = requestService.cancelRequest(requester1.getId(),
                 request.getId());
 
-        assertEquals(EventRequestStatus.REJECTED, participationRequestDto.getStatus());
+        assertEquals(EventRequestStatus.CANCELED, participationRequestDto.getStatus());
     }
 
     @Test

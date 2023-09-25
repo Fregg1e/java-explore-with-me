@@ -60,7 +60,8 @@ public class RequestServiceImpl implements RequestService {
                 .created(LocalDateTime.now())
                 .requester(user.getId())
                 .event(event.getId())
-                .status(event.getRequestModeration() ? EventRequestStatus.PENDING : EventRequestStatus.CONFIRMED)
+                .status(!event.getRequestModeration() || event.getParticipantLimit() == 0
+                        ? EventRequestStatus.CONFIRMED : EventRequestStatus.PENDING)
                 .build();
         return RequestMapper.fromRequestToParticipationRequestDto(requestRepository.save(request));
     }
@@ -76,7 +77,7 @@ public class RequestServiceImpl implements RequestService {
             throw new NotFoundException("Запрос не найден.",
                     String.format("Запрос с ID = %d не существует.", requestId));
         }
-        request.setStatus(EventRequestStatus.REJECTED);
+        request.setStatus(EventRequestStatus.CANCELED);
         return RequestMapper.fromRequestToParticipationRequestDto(requestRepository.save(request));
     }
 
@@ -151,7 +152,7 @@ public class RequestServiceImpl implements RequestService {
         }
         for (Request request : changeableRequests) {
             if (!request.getStatus().equals(EventRequestStatus.PENDING)) {
-                throw new RequestStatusException("Запросы должны иметь статус PENDING");
+                throw new RequestStatusException("Невозможно обновить запросы", "Запросы должны иметь статус PENDING");
             }
             request.setStatus(EventRequestStatus.valueOf(eventRequestUpdateStatus.toString()));
             if (!participantLimit.equals(0) && isConfirming) {

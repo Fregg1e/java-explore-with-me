@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.client.EventStatsClient;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.exception.model.DateRangeException;
 import ru.practicum.ewm.exception.model.EventDateException;
 import ru.practicum.ewm.exception.model.EventStateException;
 import ru.practicum.ewm.exception.model.NotFoundException;
@@ -35,7 +36,6 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
     private final LocationRepository locationRepository;
     private final RequestRepository requestRepository;
     private final EventStatsClient eventStatsClient;
-
 
     @Override
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
@@ -190,6 +190,9 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
         if (updateEventAdminRequest.getTitle() != null) {
             event.setTitle(updateEventAdminRequest.getTitle());
         }
+        if (updateEventAdminRequest.getDescription() != null) {
+            event.setDescription(updateEventAdminRequest.getDescription());
+        }
         if (updateEventAdminRequest.getStateAction() != null) {
             if (updateEventAdminRequest.getStateAction().equals(EventStateAdminUpdate.PUBLISH_EVENT)) {
                 if (!event.getState().equals(EventState.PENDING)) {
@@ -235,6 +238,9 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
     public List<EventShortDto> getEvents(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
             LocalDateTime rangeEnd, Boolean onlyAvailable, EventSort sort, Integer from, Integer size,
             HttpServletRequest request) {
+        if (rangeStart != null && rangeEnd != null && rangeStart.isAfter(rangeEnd)) {
+            throw new DateRangeException("rangeStart позже rangeEnd");
+        }
         List<Event> events;
         if (rangeStart == null && rangeEnd == null) {
             events = eventRepository.getEvents(text, categories, paid, LocalDateTime.now(), null,
@@ -283,13 +289,14 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
         }
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
         eventFullDto.setConfirmedRequests(getConfirmedRequest(event.getId()));
+        setViewsEventFullDto(List.of(eventFullDto));
+        eventFullDto.setViews(eventFullDto.getViews() + 1L);
         eventStatsClient.saveHit(EndpointHitDto.builder()
                 .app(APP_NAME)
                 .ip(request.getRemoteAddr())
                 .uri(request.getRequestURI())
                 .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .build());
-        setViewsEventFullDto(List.of(eventFullDto));
         return eventFullDto;
     }
 

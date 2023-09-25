@@ -60,13 +60,12 @@ public class CategoryServiceImpl implements CategoryAdminService, CategoryPublic
         Category category = categoryRepository.findById(catId)
                 .orElseThrow(() -> new NotFoundException("Категория не найдена.",
                         String.format("Категория с ID = %d не существует.", catId)));
-        category.setName(categoryDto.getName());
-        try {
-            category = categoryRepository.save(category);
-        } catch (DataIntegrityViolationException e) {
-            throw new AlreadyExistException("Name должен быть уникальным.",
-                    "Категория с таким name уже существует!");
+        String name = categoryDto.getName();
+        if (!category.getName().equals(name) && categoryRepository.existsCategoryByName(name)) {
+            throw new AlreadyExistException("Невозможно обновить категорию", "Название категории уже занято");
         }
+        category.setName(name);
+        category = categoryRepository.save(category);
         log.debug("Категория обновлена: {}", category);
         return CategoryMapper.fromCategoryToCategoryDto(category);
     }

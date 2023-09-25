@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
+import ru.practicum.ewm.exception.model.DateRangeException;
 import ru.practicum.ewm.mapper.EndpointHitMapper;
 import ru.practicum.ewm.mapper.ViewStatsMapper;
 import ru.practicum.ewm.repository.EndpointHitRepository;
@@ -31,6 +32,9 @@ public class StatsServiceImpl implements StatsService {
     @Override
     @Transactional(readOnly = true)
     public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        if (start.isAfter(end)) {
+            throw new DateRangeException("start поле end");
+        }
         if (unique) {
             log.debug("Return unique stats with param: " + start + ", " + end + ", " + uris);
             return endpointHitRepository.getUniqueStats(start, end, uris).stream().map(
