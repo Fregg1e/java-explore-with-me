@@ -8,6 +8,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.ewm.dto.ViewStatsDto;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -23,13 +24,14 @@ public class EventStatsClient extends StatsClient {
     }
 
     public Map<Long, Long> getViewsByIds(List<Long> ids) {
-        String[] uris = ids.stream().map(id -> "/events/" + id).toArray(String[]::new);
-        List<ViewStatsDto> viewStatsDtos = super.getStats(LocalDateTime.MIN, LocalDateTime.now(), uris, true);
-        Map<Long, Long> views = viewStatsDtos.stream().collect(Collectors.toMap(
+        List<String> uris = ids.stream().map(id -> "/events/" + id).collect(Collectors.toList());
+        LocalDateTime start = LocalDateTime.parse("2020-11-11 11:11:11",
+                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        LocalDateTime end = LocalDateTime.now();
+        List<ViewStatsDto> viewStatsDtos = super.getStats(start, end, uris, true);
+        return viewStatsDtos.stream().collect(Collectors.toMap(
                 viewStatsDto -> Long.parseLong(viewStatsDto.getUri()
                         .substring(viewStatsDto.getUri().length() - 1)),
-                ViewStatsDto::getHits
-        ));
-        return null;
+                ViewStatsDto::getHits));
     }
 }
