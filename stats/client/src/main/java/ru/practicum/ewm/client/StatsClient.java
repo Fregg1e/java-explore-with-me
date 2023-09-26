@@ -7,8 +7,6 @@ import org.springframework.web.client.RestTemplate;
 import ru.practicum.ewm.dto.EndpointHitDto;
 import ru.practicum.ewm.dto.ViewStatsDto;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -45,20 +43,22 @@ public class StatsClient {
         return responseBuilder.build();
     }
 
-    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, String[] uris, Boolean unique) {
-        String encodeStart = URLEncoder.encode(start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                StandardCharsets.UTF_8);
-        String encodeEnd = URLEncoder.encode(end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                StandardCharsets.UTF_8);
-        Map<String, Object> parameters = new HashMap<>(Map.of("start", encodeStart, "end", encodeEnd));
+    public List<ViewStatsDto> getStats(LocalDateTime start, LocalDateTime end, List<String> uris, Boolean unique) {
+        String url = "/stats?start={start}&end={end}";
+        Map<String, Object> parameters = new HashMap<>(Map.of(
+                "start", start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                "end", end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        ));
         if (uris != null) {
+            url += "&uris={uris}";
             parameters.put("uris", uris);
         }
         if (unique != null) {
+            url += "&unique={unique}";
             parameters.put("unique", unique);
         }
-        HttpEntity<EndpointHitDto> requestEntity = new HttpEntity<>(null, makeHeaders());
-        return restTemplate.exchange("/stats", HttpMethod.GET, requestEntity,
+        HttpEntity<?> requestEntity = new HttpEntity<>(makeHeaders());
+        return restTemplate.exchange(url, HttpMethod.GET, requestEntity,
                 new ParameterizedTypeReference<List<ViewStatsDto>>() {}, parameters).getBody();
     }
 
