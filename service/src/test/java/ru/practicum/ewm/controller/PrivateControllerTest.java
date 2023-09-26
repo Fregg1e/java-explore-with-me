@@ -9,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.EventRequestStatus;
+import ru.practicum.ewm.service.CommentPrivateService;
 import ru.practicum.ewm.service.EventPrivateService;
 import ru.practicum.ewm.service.RequestService;
 
@@ -20,9 +21,7 @@ import java.util.List;
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -36,6 +35,8 @@ class PrivateControllerTest {
     private EventPrivateService eventPrivateService;
     @MockBean
     private RequestService requestService;
+    @MockBean
+    private CommentPrivateService commentPrivateService;
 
     @Test
     void createEventTest_whenEventValid_thenStatusIsCreated() throws Exception {
@@ -273,6 +274,66 @@ class PrivateControllerTest {
 
         mockMvc.perform(patch("/users/1/events/1/requests")
                         .content(mapper.writeValueAsString(eventRequestStatusUpdateRequest))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void createCommentTest_whenSuccess_thenStatusIsCreated() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentPrivateService.createComment(any(), any(), any())).thenReturn(commentDto);
+
+        mockMvc.perform(post("/users/1/comments")
+                        .param("eventId", "1")
+                        .content(mapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    void updateCommentTest_whenSuccess_thenStatusIsOk() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentPrivateService.updateComment(any(), any(), any())).thenReturn(commentDto);
+
+        mockMvc.perform(patch("/users/1/comments/1")
+                        .content(mapper.writeValueAsString(commentDto))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteCommentTest_whenSuccess_thenStatusIsNoContent() throws Exception {
+        mockMvc.perform(delete("/users/1/comments/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getCommentsByUserIdTest_whenSuccess_thenStatusIsOk() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentPrivateService.getCommentsByUserId(any(), any(), any())).thenReturn(List.of(commentDto));
+
+        mockMvc.perform(get("/users/1/comments")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getCommentByUserIdAndCommentIdTest_whenSuccess_thenStatusIsOk() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentPrivateService.getCommentByUserIdAndCommentId(any(), any())).thenReturn(commentDto);
+
+        mockMvc.perform(get("/users/1/comments/1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))

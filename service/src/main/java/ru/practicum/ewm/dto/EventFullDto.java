@@ -6,6 +6,7 @@ import lombok.Data;
 import ru.practicum.ewm.model.EventState;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -29,4 +30,5 @@ public class EventFullDto {
     private EventState state;
     private String title;
     private Long views;
+    private List<CommentDto> comments;
 }

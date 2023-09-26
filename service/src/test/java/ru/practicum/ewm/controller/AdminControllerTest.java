@@ -10,10 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.exception.model.AlreadyExistException;
 import ru.practicum.ewm.exception.model.NotFoundException;
-import ru.practicum.ewm.service.CategoryAdminService;
-import ru.practicum.ewm.service.CompilationAdminService;
-import ru.practicum.ewm.service.EventAdminService;
-import ru.practicum.ewm.service.UserAdminService;
+import ru.practicum.ewm.service.*;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -42,6 +39,8 @@ class AdminControllerTest {
     private EventAdminService eventAdminService;
     @MockBean
     private CompilationAdminService compilationAdminService;
+    @MockBean
+    private CommentAdminService commentAdminService;
 
     @Test
     void createUserTest_whenUserCorrect_thenReturnNewUser() throws Exception {
@@ -373,6 +372,39 @@ class AdminControllerTest {
 
         mockMvc.perform(patch("/admin/compilations/1")
                         .content(mapper.writeValueAsString(updateCompilationRequest))
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void getCommentsByEventIdTest_whenUpdate_thenStatusIsOk() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentAdminService.getCommentsByEventId(any(), any(), any())).thenReturn(List.of(commentDto));
+
+        mockMvc.perform(get("/admin/events/1/comments")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    void deleteCommentByAdminTest_whenSuccess_thenStatusIsNoContent() throws Exception {
+        mockMvc.perform(delete("/admin/comments/1")
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test
+    void getCommentByIdTest_whenUpdate_thenStatusIsOk() throws Exception {
+        CommentDto commentDto = CommentDto.builder().text("test123").build();
+        when(commentAdminService.getCommentById(any())).thenReturn(commentDto);
+
+        mockMvc.perform(get("/admin/comments/1")
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
