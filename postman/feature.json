@@ -74,6 +74,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments",
 									"host": [
@@ -173,6 +177,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId={{eid}}",
 									"host": [
@@ -278,6 +286,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId={{eid}}",
 									"host": [
@@ -381,6 +393,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId={{eid}}",
 									"host": [
@@ -485,6 +501,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId={{eid}}",
 									"host": [
@@ -588,6 +608,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId={{eid}}",
 									"host": [
@@ -689,6 +713,10 @@
 										"type": "text"
 									}
 								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{request_body}}"
+								},
 								"url": {
 									"raw": "{{baseUrl}}/users/:userId/comments?eventId=999",
 									"host": [
