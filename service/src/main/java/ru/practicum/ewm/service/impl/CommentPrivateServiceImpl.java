@@ -15,7 +15,6 @@ import ru.practicum.ewm.model.User;
 import ru.practicum.ewm.repository.CommentRepository;
 import ru.practicum.ewm.repository.EventRepository;
 import ru.practicum.ewm.repository.UserRepository;
-import ru.practicum.ewm.service.CommentAdminService;
 import ru.practicum.ewm.service.CommentPrivateService;
 import ru.practicum.ewm.utils.OffsetPageRequest;
 
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Transactional
 @RequiredArgsConstructor
-public class CommentServiceImpl implements CommentPrivateService, CommentAdminService {
+public class CommentPrivateServiceImpl implements CommentPrivateService {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -77,6 +76,7 @@ public class CommentServiceImpl implements CommentPrivateService, CommentAdminSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentDto> getCommentsByUserId(Long userId, Integer from, Integer size) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
                 String.format("Пользователя с ID = %d не существует.", userId)));
@@ -85,6 +85,7 @@ public class CommentServiceImpl implements CommentPrivateService, CommentAdminSe
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CommentDto getCommentByUserIdAndCommentId(Long userId, Long commentId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("Пользователь не найден.",
                 String.format("Пользователя с ID = %d не существует.", userId)));
@@ -95,31 +96,6 @@ public class CommentServiceImpl implements CommentPrivateService, CommentAdminSe
             throw new NotFoundException("Комментарий не найден.",
                     String.format("Комментарий с ID = %d не существует.", commentId));
         }
-        return CommentMapper.fromCommentToCommentDto(comment);
-    }
-
-    @Override
-    public List<CommentDto> getCommentsByEventId(Long eventId, Integer from, Integer size) {
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(() -> new NotFoundException("Событие не найдено.",
-                        String.format("Событие с ID = %d не существует.", eventId)));
-        return commentRepository.getCommentsByEventId(event.getId(), new OffsetPageRequest(from, size)).stream()
-                .map(CommentMapper::fromCommentToCommentDto).collect(Collectors.toList());
-    }
-
-    @Override
-    public void deleteCommentByAdmin(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Комментарий не найден.",
-                        String.format("Комментарий с ID = %d не существует.", commentId)));
-        commentRepository.deleteById(comment.getId());
-    }
-
-    @Override
-    public CommentDto getCommentById(Long commentId) {
-        Comment comment = commentRepository.findById(commentId)
-                .orElseThrow(() -> new NotFoundException("Комментарий не найден.",
-                        String.format("Комментарий с ID = %d не существует.", commentId)));
         return CommentMapper.fromCommentToCommentDto(comment);
     }
 }
