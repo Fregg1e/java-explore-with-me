@@ -10,6 +10,7 @@ import ru.practicum.ewm.exception.model.DateRangeException;
 import ru.practicum.ewm.exception.model.EventDateException;
 import ru.practicum.ewm.exception.model.EventStateException;
 import ru.practicum.ewm.exception.model.NotFoundException;
+import ru.practicum.ewm.mapper.CommentMapper;
 import ru.practicum.ewm.mapper.EventMapper;
 import ru.practicum.ewm.model.*;
 import ru.practicum.ewm.repository.*;
@@ -36,6 +37,7 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
     private final LocationRepository locationRepository;
     private final RequestRepository requestRepository;
     private final EventStatsClient eventStatsClient;
+    private final CommentRepository commentRepository;
 
     @Override
     public EventFullDto createEvent(Long userId, NewEventDto newEventDto) {
@@ -156,6 +158,7 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
         eventFullDto.setConfirmedRequests(getConfirmedRequest(eventFullDto.getId()));
         setViewsEventFullDto(List.of(eventFullDto));
+        setComments(eventFullDto);
         return eventFullDto;
     }
 
@@ -289,6 +292,7 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
         }
         EventFullDto eventFullDto = EventMapper.fromEventToEventFullDto(event);
         eventFullDto.setConfirmedRequests(getConfirmedRequest(event.getId()));
+        setComments(eventFullDto);
         setViewsEventFullDto(List.of(eventFullDto));
         eventFullDto.setViews(eventFullDto.getViews() + 1L);
         eventStatsClient.saveHit(EndpointHitDto.builder()
@@ -342,6 +346,13 @@ public class EventServiceImpl implements EventPrivateService, EventAdminService,
                 Long view = views.get(eventFullDto.getId());
                 eventFullDto.setViews(Objects.requireNonNullElse(view, 0L));
             }
+        }
+    }
+
+    private void setComments(EventFullDto eventFullDto) {
+        if (eventFullDto.getState().equals(EventState.PUBLISHED)) {
+            eventFullDto.setComments(commentRepository.getCommentsByEventIdWithoutPagination(eventFullDto.getId())
+                    .stream().map(CommentMapper::fromCommentToCommentDto).collect(Collectors.toList()));
         }
     }
 }

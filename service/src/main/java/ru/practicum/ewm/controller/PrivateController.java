@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
+import ru.practicum.ewm.service.CommentPrivateService;
 import ru.practicum.ewm.service.EventPrivateService;
 import ru.practicum.ewm.service.RequestService;
 
@@ -20,6 +21,7 @@ import java.util.List;
 public class PrivateController {
     private final EventPrivateService eventPrivateService;
     private final RequestService requestService;
+    private final CommentPrivateService commentPrivateService;
 
     @GetMapping("/{userId}/events")
     @ResponseStatus(HttpStatus.OK)
@@ -83,5 +85,41 @@ public class PrivateController {
     public ParticipationRequestDto cancelRequest(@PathVariable("userId") Long userId,
             @PathVariable("requestId") Long requestId) {
         return requestService.cancelRequest(userId, requestId);
+    }
+
+    @PostMapping("/{userId}/comments")
+    @ResponseStatus(HttpStatus.CREATED)
+    public CommentDto createComment(@PathVariable("userId") Long userId,
+            @RequestParam(value = "eventId") Long eventId, @RequestBody @Valid CommentDto commentDto) {
+        return commentPrivateService.createComment(userId, eventId, commentDto);
+    }
+
+    @PatchMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CommentDto updateComment(@PathVariable("userId") Long userId,
+            @PathVariable("commentId") Long commentId, @RequestBody @Valid CommentDto commentDto) {
+        return commentPrivateService.updateComment(userId, commentId, commentDto);
+    }
+
+    @DeleteMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable("userId") Long userId,
+            @PathVariable("commentId") Long commentId) {
+        commentPrivateService.deleteComment(userId, commentId);
+    }
+
+    @GetMapping("/{userId}/comments")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentDto> getCommentsByUserId(@PathVariable("userId") Long userId,
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size) {
+        return commentPrivateService.getCommentsByUserId(userId, from, size);
+    }
+
+    @GetMapping("/{userId}/comments/{commentId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CommentDto getCommentByUserIdAndCommentId(@PathVariable("userId") Long userId,
+            @PathVariable("commentId") Long commentId) {
+        return commentPrivateService.getCommentByUserIdAndCommentId(userId, commentId);
     }
 }

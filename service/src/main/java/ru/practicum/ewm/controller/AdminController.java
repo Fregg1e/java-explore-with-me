@@ -7,10 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewm.dto.*;
 import ru.practicum.ewm.model.EventState;
-import ru.practicum.ewm.service.CategoryAdminService;
-import ru.practicum.ewm.service.CompilationAdminService;
-import ru.practicum.ewm.service.EventAdminService;
-import ru.practicum.ewm.service.UserAdminService;
+import ru.practicum.ewm.service.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
@@ -27,6 +24,7 @@ public class AdminController {
     private final CategoryAdminService categoryAdminService;
     private final EventAdminService eventAdminService;
     private final CompilationAdminService compilationAdminService;
+    private final CommentAdminService commentAdminService;
 
     @PostMapping("/categories")
     @ResponseStatus(HttpStatus.CREATED)
@@ -104,5 +102,25 @@ public class AdminController {
     public CompilationDto updateCompilation(@PathVariable("compId") Long compId,
             @RequestBody @Valid UpdateCompilationRequest updateCompilationRequest) {
         return compilationAdminService.updateCompilation(compId, updateCompilationRequest);
+    }
+
+    @GetMapping("/events/{eventId}/comments")
+    @ResponseStatus(HttpStatus.OK)
+    public List<CommentDto> getCommentsByEventId(@PathVariable("eventId") Long eventId,
+            @RequestParam(value = "from", defaultValue = "0") @PositiveOrZero  Integer from,
+            @RequestParam(value = "size", defaultValue = "10") @Min(1) Integer size) {
+        return commentAdminService.getCommentsByEventId(eventId, from, size);
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteCommentByAdmin(@PathVariable("commentId") Long commentId) {
+        commentAdminService.deleteCommentByAdmin(commentId);
+    }
+
+    @GetMapping("/comments/{commentId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CommentDto getCommentById(@PathVariable("commentId") Long commentId) {
+        return commentAdminService.getCommentById(commentId);
     }
 }

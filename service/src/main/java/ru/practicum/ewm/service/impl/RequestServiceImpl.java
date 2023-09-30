@@ -159,9 +159,6 @@ public class RequestServiceImpl implements RequestService {
                 remainingRequestLimit--;
             }
         }
-        for (Request request : changeableRequests) {
-            requestRepository.save(request);
-        }
         if (remainingRequestLimit == 0) {
             List<Request> pendingRequests = requestRepository.getRequestsByEventIdAndStatus(event.getId(),
                     EventRequestStatus.PENDING);
